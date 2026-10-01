@@ -1,0 +1,15 @@
+# Im Repository werden Zeilenenden immer als LF gespeichert.
+* text=auto
+
+# Diese Dateien laufen in Linux-Containern und muessen auch im
+# Arbeitsverzeichnis LF behalten - mit CRLF scheitert ein Shell-Skript
+# im Container mit "bad interpreter: /bin/bash^M".
+*.sh    text eol=lf
+*.sql   text eol=lf
+*.yml   text eol=lf
+*.yaml  text eol=lf
+
+# Binaerdateien nicht anfassen
+*.pdf   binary
+*.png   binary
+*.jpg   binary
