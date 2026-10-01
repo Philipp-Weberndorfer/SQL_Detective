@@ -4,10 +4,10 @@
 
 Jira kennt diese Rollen nicht als Feld – sie werden hier festgehalten.
 
-| Rolle | Person | Aufgabe |
-|---|---|---|
-| Product Owner | *(eintragen)* | pflegt das Backlog, entscheidet Prioritäten, ist Ansprechpartner der Betreuungsperson |
-| Scrum Master | *(eintragen)* | Termine, Board sauber halten, Hindernisse beseitigen; hat Jira-Administratorrechte im Projekt |
+| Rolle | Person                            | Aufgabe |
+|---|-----------------------------------|---|
+| Product Owner | Philipp Weberndorfer              | pflegt das Backlog, entscheidet Prioritäten, ist Ansprechpartner der Betreuungsperson |
+| Scrum Master | Laurenz Anzengruber               | Termine, Board sauber halten, Hindernisse beseitigen; hat Jira-Administratorrechte im Projekt |
 | Entwicklung | Anzengruber, Weberndorfer, Wieser | alle drei |
 
 Product Owner und Scrum Master sollten nicht dieselbe Person sein.

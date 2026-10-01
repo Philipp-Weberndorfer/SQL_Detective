@@ -14,13 +14,13 @@ durchnummeriert. Jede Jira-Story verweist in ihrer Beschreibung auf die zugehör
 
 ## Tech-Stack
 
-| Bereich | Technologie |
-|---|---|
-| Datenbank | PostgreSQL 16 (zwei getrennte Instanzen) |
-| Deployment | Docker Compose |
-| Backend | *(in Sprint 1 festzulegen)* |
-| Frontend | *(in Sprint 1 festzulegen)* |
-| LLM | *(in Sprint 1 festzulegen)* |
+| Bereich | Technologie                                             |
+|---|---------------------------------------------------------|
+| Datenbank | PostgreSQL 16 (zwei getrennte Instanzen)                |
+| Deployment | Docker Compose                                          |
+| Backend | Java                                                    |
+| Frontend | Typescript                                              |
+| LLM | *(in Sprint 1 festzulegen)*                             |
 | MCP-Server | eigene Implementierung, Pflichtbestandteil laut Konzept |
 
 Sobald Backend und Frontend stehen, diese Tabelle und die Befehle unten ausfüllen.

@@ -12,7 +12,7 @@ welchen Tabellen sie steht und wie er sie verknüpft. Unterstützt wird er dabei
 | | |
 |---|---|
 | Team | Anzengruber, Weberndorfer, Wieser |
-| Jira-Board | *(Link hier eintragen)* |
+| Jira-Board | https://louchovibes.atlassian.net/jira/software/projects/SCRUM/summary |
 | Pflichtenheft | [`docs/konzept/SQL_Detective.pdf`](docs/konzept/SQL_Detective.pdf) (F01–F137) |
 | Sprintplan | [`docs/sprintplan.md`](docs/sprintplan.md) |
 
