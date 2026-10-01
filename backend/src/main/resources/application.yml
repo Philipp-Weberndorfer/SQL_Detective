@@ -1,0 +1,41 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: sql-detective
+
+# Nur der Health-Endpunkt wird nach aussen freigegeben.
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+
+sqldetective:
+
+  # Anwendungsdatenbank: Benutzer, Fortschritt, Spielstand.
+  # Spieler-SQL erreicht diese Verbindung niemals.
+  app-db:
+    url: ${APP_DB_URL:jdbc:postgresql://localhost:5432/sqldetective_app}
+    username: ${APP_DB_USER:sqld}
+    password: ${APP_DB_PASSWORD:dev}
+
+  # Spieldatenbank: hier laufen die Abfragen der Spieler.
+  # ACHTUNG: Diese Verbindung MUSS den Nur-Lese-Benutzer verwenden (F33, F112).
+  game-db:
+    url: ${GAME_DB_URL:jdbc:postgresql://localhost:5433/sqldetective_game}
+    username: ${GAME_DB_READONLY_USER:game_readonly}
+    password: ${GAME_DB_READONLY_PASSWORD:readonly_dev}
+
+  # Grenzen fuer Spielerabfragen (F34, F35, F113, F114)
+  query:
+    timeout-ms: ${QUERY_TIMEOUT_MS:5000}
+    max-rows: ${QUERY_MAX_ROWS:500}
+
+logging:
+  level:
+    at.htlwels.sqldetective: DEBUG

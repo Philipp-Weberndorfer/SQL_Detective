@@ -23,16 +23,28 @@ durchnummeriert. Jede Jira-Story verweist in ihrer Beschreibung auf die zugehör
 | LLM | *(in Sprint 1 festzulegen)*                             |
 | MCP-Server | eigene Implementierung, Pflichtbestandteil laut Konzept |
 
-Sobald Backend und Frontend stehen, diese Tabelle und die Befehle unten ausfüllen.
+Java 21, Maven. Das Backend liegt unter `backend/`, Paketwurzel `at.htlwels.sqldetective`.
 
 ## Befehle
 
 ```bash
-docker compose up                     # alles starten
+docker compose up                     # alles starten (beide Datenbanken + Backend)
 docker compose down -v                # Datenbanken zurücksetzen (Init-Skripte laufen neu)
+
+mvn test                              # Unit-Tests (aus der Projektwurzel, alle Java-Module)
+cd backend && mvn spring-boot:run     # Backend allein starten (Datenbanken müssen laufen)
 ```
 
-Tests: *(eintragen, sobald vorhanden)*
+Beim lokalen Start aus der IDE greift das Backend auf `localhost:5432` und `localhost:5433` zu;
+im Container auf die Dienstnamen `app-db` und `game-db`. Beides steht in `application.yml`
+als Vorgabewert bzw. Umgebungsvariable.
+
+Endpunkte:
+
+| Methode | Pfad | Zweck |
+|---|---|---|
+| GET | `/api/health` | Status und Erreichbarkeit beider Datenbanken |
+| POST | `/api/queries` | Spielerabfrage ausführen, Body `{"sql": "SELECT ..."}` |
 
 ## Architekturregeln
 
