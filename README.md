@@ -46,7 +46,23 @@ docker compose down -v && docker compose up
 ## Tests
 
 ```bash
-# (Befehle eintragen, sobald Backend und Frontend stehen)
+cd backend
+mvn test
+```
+
+## API
+
+| Methode | Pfad | Zweck |
+|---|---|---|
+| GET | `/api/health` | Status und Erreichbarkeit beider Datenbanken |
+| POST | `/api/queries` | Spielerabfrage ausführen, Body `{"sql": "SELECT ..."}` |
+
+Beispiel (PowerShell):
+
+```powershell
+Invoke-RestMethod -Uri http://localhost:8080/api/queries -Method Post `
+  -ContentType "application/json" `
+  -Body '{"sql": "SELECT * FROM access_logs WHERE room_id = 3"}'
 ```
 
 ## Ordnerstruktur

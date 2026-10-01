@@ -50,20 +50,28 @@ services:
       timeout: 5s
       retries: 10
 
-  # backend:
-  #   build: ./backend
-  #   container_name: sqld-backend
-  #   depends_on:
-  #     app-db:   { condition: service_healthy }
-  #     game-db:  { condition: service_healthy }
-  #   environment:
-  #     APP_DB_URL:  postgres://${APP_DB_USER}:${APP_DB_PASSWORD}@app-db:5432/${APP_DB_NAME}
-  #     GAME_DB_URL: postgres://${GAME_DB_READONLY_USER}:${GAME_DB_READONLY_PASSWORD}@game-db:5432/${GAME_DB_NAME}
-  #     QUERY_TIMEOUT_MS: ${QUERY_TIMEOUT_MS}
-  #     QUERY_MAX_ROWS: ${QUERY_MAX_ROWS}
-  #     JWT_SECRET: ${JWT_SECRET}
-  #   ports:
-  #     - "${BACKEND_PORT}:8080"
+  # Backend: REST API, Spiellogik, sichere SQL-Ausfuehrung.
+  # Verbindet sich zur Spieldatenbank ausschliesslich ueber den Nur-Lese-Benutzer.
+  backend:
+    build: ./backend
+    container_name: sqld-backend
+    depends_on:
+      app-db:
+        condition: service_healthy
+      game-db:
+        condition: service_healthy
+    environment:
+      APP_DB_URL: jdbc:postgresql://app-db:5432/${APP_DB_NAME}
+      APP_DB_USER: ${APP_DB_USER}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD}
+      GAME_DB_URL: jdbc:postgresql://game-db:5432/${GAME_DB_NAME}
+      GAME_DB_READONLY_USER: ${GAME_DB_READONLY_USER}
+      GAME_DB_READONLY_PASSWORD: ${GAME_DB_READONLY_PASSWORD}
+      QUERY_TIMEOUT_MS: ${QUERY_TIMEOUT_MS}
+      QUERY_MAX_ROWS: ${QUERY_MAX_ROWS}
+      JWT_SECRET: ${JWT_SECRET}
+    ports:
+      - "${BACKEND_PORT}:8080"
 
   # frontend:
   #   build: ./frontend
