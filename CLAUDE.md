@@ -18,8 +18,8 @@ durchnummeriert. Jede Jira-Story verweist in ihrer Beschreibung auf die zugehör
 |---|---------------------------------------------------------|
 | Datenbank | PostgreSQL 16 (zwei getrennte Instanzen)                |
 | Deployment | Docker Compose                                          |
-| Backend | Java                                                    |
-| Frontend | Typescript                                              |
+| Backend | Java mit Spring Boot (Spring Security für Login)        |
+| Frontend | TypeScript mit React + Vite                             |
 | LLM | *(in Sprint 1 festzulegen)*                             |
 | MCP-Server | eigene Implementierung, Pflichtbestandteil laut Konzept |
 
@@ -59,11 +59,10 @@ egal; die Zeilenreihenfolge zählt nur, wenn die Mission sie ausdrücklich verla
 
 - Branches: `feature/SCRUM-<nr>-kurzbeschreibung`
 - Commit-Nachrichten beginnen mit der Jira-Nummer: `SCRUM-23: Docker-Grundgerüst`
-- Jede Änderung über Pull Request, Review durch eine zweite Person
 - Deutsch in Dokumentation und Oberfläche, Englisch in Code und Bezeichnern
 - Keine Geheimnisse im Repository – nur `.env.example` mit Platzhaltern
 
 ## Was „fertig" heißt
 
 Siehe `docs/definition-of-done.md`. Kurz: Akzeptanzkriterien erfüllt, Tests grün, läuft in
-`docker compose up` ohne manuelle Schritte, reviewt, gemerged.
+`docker compose up` ohne manuelle Schritte, auf `main`.

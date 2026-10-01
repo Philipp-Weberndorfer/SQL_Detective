@@ -51,21 +51,33 @@ Fall ohne Codeänderung hinzufügen.
 
 ## AE-04 · Backend-Framework
 
-**Entscheidung:** *(offen – in Sprint 1 zu entscheiden)*
-**Alternativen:**
-**Begründung:**
-**Konsequenz:**
-**Datum:**
+**Entscheidung:** Spring Boot (Java) mit Spring Security für Registrierung und Login.
+**Alternativen:** Quarkus, Javalin.
+**Begründung:** Spring Boot ist der verbreitetste Java-Standard, mit Abstand am besten dokumentiert und im
+Unterricht bekannt. Spring Security liefert Passwort-Hashing (BCrypt) und Sitzungsverwaltung fertig, statt
+dass wir sicherheitskritischen Code selbst schreiben (F01, F02). Zwei getrennte DataSources für
+Anwendungs- und Spieldatenbank (AE-02) lassen sich sauber konfigurieren, ebenso Query-Timeout und
+Zeilenlimit über JDBC (F34, F35). Quarkus wäre schlanker, hat aber weniger Lernmaterial; mit Javalin
+müssten Security und Datenbankzugriff von Hand gebaut werden.
+**Konsequenz:** Zwei DataSources müssen explizit konfiguriert werden – die Spieldatenbank ausschließlich mit
+dem Benutzer `game_readonly`. Spring Boot startet langsamer und braucht mehr Speicher als die Alternativen,
+was für das Projekt keine Rolle spielt.
+**Datum:** 01.10.2026
 
 ---
 
 ## AE-05 · Frontend-Framework
 
-**Entscheidung:** *(offen – in Sprint 1 zu entscheiden)*
-**Alternativen:**
-**Begründung:**
-**Konsequenz:**
-**Datum:**
+**Entscheidung:** React mit TypeScript, gebaut mit Vite.
+**Alternativen:** Vue, Angular.
+**Begründung:** React hat das größte Ökosystem. Für die zentralen Bausteine – SQL-Editor mit
+Syntaxhervorhebung (Monaco oder CodeMirror), Ergebnistabelle, Evidence Board – gibt es ausgereifte
+Komponenten. Vite liefert schnellen Entwicklungsserver und einfachen Build. Vue wäre einsteigerfreundlicher,
+hat aber weniger passende Komponenten; Angular bringt für ein Team von drei Personen zu viel Struktur und
+Einarbeitung mit.
+**Konsequenz:** Routing, Formularvalidierung und Zustandsverwaltung sind in React nicht eingebaut und müssen
+bewusst gewählt werden (z. B. React Router). Der Entwicklungsserver läuft auf Port 5173.
+**Datum:** 01.10.2026
 
 ---
 

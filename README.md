@@ -79,7 +79,6 @@ Spieler geben beliebiges SQL ein. Der Schutz liegt bewusst auf mehreren Schichte
 ## Mitarbeiten
 
 - Branch pro Vorgang: `feature/SCRUM-23-kurzbeschreibung`
-- Jede Änderung über Pull Request, Review durch eine zweite Person
 - Die Jira-Nummer gehört in die Commit-Nachricht (`SCRUM-23: Docker-Grundgerüst`)
 - Was „fertig" bedeutet, steht in [`docs/definition-of-done.md`](docs/definition-of-done.md)
 
