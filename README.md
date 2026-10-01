@@ -46,8 +46,7 @@ docker compose down -v && docker compose up
 ## Tests
 
 ```bash
-cd backend
-mvn test
+mvn test          # aus der Projektwurzel, testet alle Java-Module
 ```
 
 ## API

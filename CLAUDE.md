@@ -31,7 +31,7 @@ Java 21, Maven. Das Backend liegt unter `backend/`, Paketwurzel `at.htlwels.sqld
 docker compose up                     # alles starten (beide Datenbanken + Backend)
 docker compose down -v                # Datenbanken zurücksetzen (Init-Skripte laufen neu)
 
-cd backend && mvn test                # Unit-Tests
+mvn test                              # Unit-Tests (aus der Projektwurzel, alle Java-Module)
 cd backend && mvn spring-boot:run     # Backend allein starten (Datenbanken müssen laufen)
 ```
 
