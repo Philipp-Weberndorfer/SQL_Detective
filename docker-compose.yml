@@ -1,0 +1,82 @@
+# SQL Detective - Entwicklungsumgebung
+#
+# Start:            docker compose up
+# Zuruecksetzen:    docker compose down -v && docker compose up
+#
+# Wichtig: Die Skripte unter db/ laufen NUR, wenn das jeweilige Volume leer ist.
+# Nach einer Schemaaenderung muss das Volume geloescht werden (down -v).
+
+services:
+
+  # Anwendungsdatenbank: Benutzer, Fortschritt, Fallmetadaten.
+  # Spieler-SQL erreicht diese Datenbank NIEMALS. (F108, F109)
+  app-db:
+    image: postgres:16
+    container_name: sqld-app-db
+    environment:
+      POSTGRES_DB: ${APP_DB_NAME}
+      POSTGRES_USER: ${APP_DB_USER}
+      POSTGRES_PASSWORD: ${APP_DB_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - app-db-data:/var/lib/postgresql/data
+      - ./db/app:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Spieldatenbank: die Ermittlungsdaten der Faelle.
+  # Hiergegen laufen die Abfragen der Spieler - ausschliesslich lesend. (F15, F33)
+  game-db:
+    image: postgres:16
+    container_name: sqld-game-db
+    environment:
+      POSTGRES_DB: ${GAME_DB_NAME}
+      POSTGRES_USER: ${GAME_DB_USER}
+      POSTGRES_PASSWORD: ${GAME_DB_PASSWORD}
+      GAME_DB_READONLY_USER: ${GAME_DB_READONLY_USER}
+      GAME_DB_READONLY_PASSWORD: ${GAME_DB_READONLY_PASSWORD}
+    ports:
+      - "5433:5432"
+    volumes:
+      - game-db-data:/var/lib/postgresql/data
+      - ./db/game:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # backend:
+  #   build: ./backend
+  #   container_name: sqld-backend
+  #   depends_on:
+  #     app-db:   { condition: service_healthy }
+  #     game-db:  { condition: service_healthy }
+  #   environment:
+  #     APP_DB_URL:  postgres://${APP_DB_USER}:${APP_DB_PASSWORD}@app-db:5432/${APP_DB_NAME}
+  #     GAME_DB_URL: postgres://${GAME_DB_READONLY_USER}:${GAME_DB_READONLY_PASSWORD}@game-db:5432/${GAME_DB_NAME}
+  #     QUERY_TIMEOUT_MS: ${QUERY_TIMEOUT_MS}
+  #     QUERY_MAX_ROWS: ${QUERY_MAX_ROWS}
+  #     JWT_SECRET: ${JWT_SECRET}
+  #   ports:
+  #     - "${BACKEND_PORT}:8080"
+
+  # frontend:
+  #   build: ./frontend
+  #   container_name: sqld-frontend
+  #   depends_on: [backend]
+  #   ports:
+  #     - "5173:5173"
+
+  # mcp-server:
+  #   build: ./mcp-server
+  #   container_name: sqld-mcp
+  #   depends_on: [backend]
+
+volumes:
+  app-db-data:
+  game-db-data:

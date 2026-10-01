@@ -1,0 +1,35 @@
+# Geheimnisse - niemals committen
+.env
+.env.local
+*.key
+*.pem
+
+# Abhaengigkeiten
+node_modules/
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Build-Artefakte
+dist/
+build/
+target/
+out/
+*.class
+*.jar
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Logs und temporaere Dateien
+*.log
+logs/
+tmp/
+
+# Betriebssystem
+.DS_Store
+Thumbs.db
+desktop.ini

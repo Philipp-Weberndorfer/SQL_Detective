@@ -1,0 +1,56 @@
+{
+  "_hinweis": "Geruest. Die Missionen 2 bis 5, die Beweise und das Finale entstehen in Sprint 2 (Jira: Fall 001 Der verschwundene Laptop). Format und Regeln: docs/architektur/fall-format.md",
+
+  "id": "case-001",
+  "title": "Der verschwundene Laptop",
+  "difficulty": 1,
+  "focus": ["SELECT", "WHERE"],
+  "requires": [],
+
+  "briefing": "Freitag um 16:30 Uhr befand sich Notebook NB-042 noch im Netzwerklabor. Montagmorgen um 07:15 Uhr wurde festgestellt, dass das Geraet fehlt. Die Ueberwachungskamera im Gang ist ausgefallen. Es stehen aber Daten aus dem Zutrittssystem, dem WLAN, dem Inventarsystem und dem Stundenplan zur Verfuegung.",
+  "goal": "Rekonstruiere, was zwischen Freitag 16:30 Uhr und Montag 07:15 Uhr passiert ist.",
+
+  "missions": [
+    {
+      "id": "m1",
+      "title": "Wem war Notebook NB-042 zugeordnet?",
+      "learningGoals": ["SELECT", "WHERE"],
+
+      "expectedResult": {
+        "columns": ["first_name", "last_name"],
+        "rows": [["Max", "Mustermann"]],
+        "orderMatters": false
+      },
+
+      "hints": [
+        { "level": 1, "text": "Welche Tabelle koennte festhalten, wem ein Geraet gehoert?" },
+        { "level": 2, "text": "Sieh dir die Tabelle devices an - vor allem die Spalte assigned_to." },
+        { "level": 3, "text": "In assigned_to steht nur eine Nummer. Du brauchst eine zweite Tabelle, um daraus einen Namen zu machen." },
+        { "level": 4, "text": "SELECT p.first_name, p.last_name FROM devices d JOIN persons p ON ... WHERE d.inventory_no = ...;" }
+      ],
+
+      "solution": "SELECT p.first_name, p.last_name FROM devices d JOIN persons p ON p.id = d.assigned_to WHERE d.inventory_no = 'NB-042';",
+      "evidenceOnSuccess": "e1"
+    },
+
+    { "_todo": "m2 - Wer hat sich zuletzt auf NB-042 angemeldet? (ORDER BY, LIMIT)" },
+    { "_todo": "m3 - Wer befand sich nach 16:30 Uhr noch im Gebaeude? (JOIN, WHERE)" },
+    { "_todo": "m4 - Welche dieser Personen hatten Zugang zum Labor? (JOIN, mehrere Bedingungen)" },
+    { "_todo": "m5 - Welche Geraete dieser Personen waren mit dem WLAN verbunden? (mehrere JOINs)" }
+  ],
+
+  "evidence": [
+    {
+      "id": "e1",
+      "title": "Geraetezuordnung",
+      "text": "Notebook NB-042 ist Max Mustermann zugeordnet."
+    }
+  ],
+
+  "conclusion": {
+    "_todo": "Schlussfolgerung und erforderliche Beweise in Sprint 2 ergaenzen",
+    "question": "Wer hat das Notebook zuletzt verwendet?",
+    "options": [],
+    "requiredEvidence": []
+  }
+}
