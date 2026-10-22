@@ -10,7 +10,7 @@ Akzeptanzkriterien in die Jira-Vorgänge übernommen werden.
 
 Offen sind 218 SP mit Priorität Highest (MUST). Bis zum Feature Freeze am 18.03.2027 bleiben Sprint 2 bis 6
 mit rund 16 effektiven Wochen, also 13,6 SP pro Woche. Für die vier Wochen von Sprint 2 wären das 54,5 SP.
-Geplant sind **86 SP**. Danach bleiben 132 SP MUST für 12 Wochen, rund 33 SP pro Sprint – etwa die
+Geplant sind **88 SP**. Danach bleiben 130 SP MUST für 12 Wochen, rund 33 SP pro Sprint – etwa die
 Velocity aus Sprint 1. Das lässt Luft für Weihnachten und den internen Freeze am 07.01.
 
 | Vorgang | Titel | SP | Vorschlag |
@@ -23,15 +23,15 @@ Velocity aus Sprint 1. Das lässt Luft für Weihnachten und den internen Freeze 
 | SCRUM-96 | Lösbarkeitstests je Fall | 5 | Wieser |
 | SCRUM-55 | Hinweis als Beweis sichern | 5 | Wieser |
 | SCRUM-56 | Evidence Board | 5 | Wieser |
+| SCRUM-46 | Tabellenschema anzeigen | 5 | Anzengruber |
 | SCRUM-39 | Fallübersicht anzeigen | 3 | Anzengruber |
 | SCRUM-42 | Case Briefing lesen | 3 | Anzengruber |
 | SCRUM-43 | Ermittlungsziel und Teilziele sehen | 3 | Anzengruber |
 | SCRUM-45 | Tabellenübersicht im Explorer | 3 | Anzengruber |
-| SCRUM-46 | Tabellenschema anzeigen | 3 | Anzengruber |
 | SCRUM-40 | Fallstatus darstellen | 2 | Weberndorfer |
 | SCRUM-58 | Aktuelle Mission anzeigen | 2 | Anzengruber |
 
-**Commitment:** 86 SP · Weberndorfer 28 · Wieser 28 · Anzengruber 30
+**Commitment:** 88 SP · Weberndorfer 28 · Wieser 28 · Anzengruber 32
 
 Die Zuordnung hält Zusammengehöriges zusammen: Explorer (SCRUM-45, 46) bei einer Person, Beweise
 (SCRUM-55, 56) bei einer Person, Fortschritt und Status (SCRUM-33, 40) bei einer Person.
@@ -42,11 +42,11 @@ SCRUM-46 braucht SCRUM-45. SCRUM-40 braucht SCRUM-33 und SCRUM-39.
 
 **Fällt zuerst weg, wenn es eng wird:**
 1. SCRUM-39 und SCRUM-40 (5 SP) – Fall #001 wird dann über einen direkten Link geöffnet
-2. SCRUM-45 und SCRUM-46 (6 SP)
+2. SCRUM-45 und SCRUM-46 (8 SP)
 
 **Änderung an SCRUM-47:** SCRUM-46 übernimmt die Fremdschlüssel-Markierung, weil sie aus derselben Abfrage
 und Ansicht kommt und Mission 1 genau diesen JOIN braucht. SCRUM-47 behält nur eine eigene
-Beziehungsansicht und wird in Jira neu geschätzt.
+Beziehungsansicht und wird in Jira neu geschätzt. SCRUM-46 ist dafür von 3 auf 5 SP gestiegen.
 
 **Empfehlung, nicht im Sprint:** SCRUM-80 Query Logging (5 SP) muss vor Sprint 3 fertig sein, weil der
 KI-Detektiv über MCP die bisherigen Abfragen des Spielers liest (Konzept Kapitel 43, Schritt 4). Nachziehen,
@@ -241,7 +241,7 @@ Akzeptanzkriterien:
 
 Konzept: F20
 
-### SCRUM-46 · Tabellenschema anzeigen · 3 SP
+### SCRUM-46 · Tabellenschema anzeigen · 5 SP
 
 Als Spieler möchte ich Spalten, Datentypen und Verknüpfungen einer Tabelle untersuchen, damit ich die
 richtigen Spaltennamen und JOINs in meine Abfragen schreibe, ohne zu raten.
