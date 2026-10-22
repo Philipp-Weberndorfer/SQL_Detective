@@ -31,10 +31,17 @@ docker compose up
 
 | Dienst | URL |
 |---|---|
-| Frontend | http://localhost:5173 |
+| Frontend | http://localhost:5173 – Konto anlegen, dann landet man im SQL-Editor |
 | Backend API | http://localhost:8080 |
+| API-Dokumentation | http://localhost:8080/swagger-ui.html |
 | Anwendungsdatenbank | `localhost:5432` |
 | Spieldatenbank | `localhost:5433` |
+
+Alle Werte (Ports, Passwörter, Zeitlimit, Zeilenlimit) stehen in `.env`, Vorlage ist `.env.example`.
+Der erste Start dauert einige Minuten, weil Maven- und npm-Abhängigkeiten geladen werden.
+
+**Frontend ohne Docker entwickeln.** Datenbanken und Backend per `docker compose up app-db game-db backend`
+starten, dann `cd frontend && npm install && npm run dev`. Vite leitet `/api` an `localhost:8080` weiter.
 
 **Datenbank zurücksetzen.** Die Init-Skripte unter `db/` laufen nur, wenn das Volume leer ist. Nach einer
 Schemaänderung passiert beim normalen Neustart also nichts – dann so zurücksetzen:
@@ -46,23 +53,36 @@ docker compose down -v && docker compose up
 ## Tests
 
 ```bash
-mvn test          # aus der Projektwurzel, testet alle Java-Module
+mvn test                      # aus der Projektwurzel, testet alle Java-Module
+cd frontend && npm test       # Frontend-Tests (Vitest)
+```
+
+Die Backend-Tests starten über Testcontainers eigene PostgreSQL-Container mit den Skripten aus `db/`.
+**Docker muss dafür laufen.** Ohne lokales JDK/Maven geht es auch komplett im Container:
+
+```bash
+docker run --rm -v "$PWD:/src" -w /src -v /var/run/docker.sock:/var/run/docker.sock \
+  -e TESTCONTAINERS_HOST_OVERRIDE=host.docker.internal maven:3.9-eclipse-temurin-21 mvn -B test
 ```
 
 ## API
 
-| Methode | Pfad | Zweck |
-|---|---|---|
-| GET | `/api/health` | Status und Erreichbarkeit beider Datenbanken |
-| POST | `/api/queries` | Spielerabfrage ausführen, Body `{"sql": "SELECT ..."}` |
+Vollständig und ausprobierbar unter http://localhost:8080/swagger-ui.html.
 
-Beispiel (PowerShell):
+| Methode | Pfad | Anmeldung | Zweck |
+|---|---|---|---|
+| GET | `/api/health` | nein | Status und Erreichbarkeit beider Datenbanken |
+| POST | `/api/auth/register` | nein | Konto anlegen, Body `{"username", "email", "password"}` |
+| POST | `/api/auth/login` | nein | Anmelden, erzeugt eine Sitzung (Cookie) |
+| POST | `/api/auth/logout` | ja | Sitzung beenden |
+| GET | `/api/auth/me` | ja | angemeldeter Benutzer |
+| POST | `/api/queries` | ja | Spielerabfrage ausführen, Body `{"sql": "SELECT ..."}` |
 
-```powershell
-Invoke-RestMethod -Uri http://localhost:8080/api/queries -Method Post `
-  -ContentType "application/json" `
-  -Body '{"sql": "SELECT * FROM access_logs WHERE room_id = 3"}'
-```
+Fehler kommen immer als `{"message": "...", "type": "..."}` zurück. `type` ist z. B. `VALIDATION`
+(abgewiesen), `SQL` (PostgreSQL-Fehler), `TIMEOUT`, `UNAUTHORIZED` oder `CONFLICT`.
+
+Schreibende Aufrufe brauchen das CSRF-Token: Das Backend setzt das Cookie `XSRF-TOKEN`, der Wert muss im
+Header `X-XSRF-TOKEN` mitgeschickt werden. Das Frontend erledigt das automatisch.
 
 ## Ordnerstruktur
 

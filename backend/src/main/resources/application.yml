@@ -1,5 +1,11 @@
 server:
   port: 8080
+  servlet:
+    session:
+      timeout: 8h                   # ein Schultag; danach erneut anmelden
+      cookie:
+        http-only: true             # Sitzungs-Cookie fuer JavaScript unsichtbar
+        same-site: lax              # zusaetzlich zum CSRF-Token
 
 spring:
   application:
@@ -35,6 +41,11 @@ sqldetective:
   query:
     timeout-ms: ${QUERY_TIMEOUT_MS:5000}
     max-rows: ${QUERY_MAX_ROWS:500}
+
+# API-Dokumentation (F130): http://localhost:8080/swagger-ui.html
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
 
 logging:
   level:

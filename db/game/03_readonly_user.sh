@@ -24,6 +24,12 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
 
     -- keine Rechte auf Sequenzen, keine Moeglichkeit, Objekte anzulegen
     REVOKE CREATE ON SCHEMA public FROM ${GAME_DB_READONLY_USER};
+
+    -- PostgreSQL erlaubt PUBLIC (also jedem Benutzer) standardmaessig, temporaere
+    -- Tabellen anzulegen und das public-Schema zu nutzen. Beides entziehen -
+    -- game_readonly behaelt nur die oben ausdruecklich vergebenen Rechte.
+    REVOKE TEMPORARY ON DATABASE ${POSTGRES_DB} FROM PUBLIC;
+    REVOKE ALL       ON SCHEMA public           FROM PUBLIC;
 EOSQL
 
 echo "Nur-Lese-Benutzer ${GAME_DB_READONLY_USER} angelegt."
