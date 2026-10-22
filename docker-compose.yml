@@ -69,16 +69,18 @@ services:
       GAME_DB_READONLY_PASSWORD: ${GAME_DB_READONLY_PASSWORD}
       QUERY_TIMEOUT_MS: ${QUERY_TIMEOUT_MS}
       QUERY_MAX_ROWS: ${QUERY_MAX_ROWS}
-      JWT_SECRET: ${JWT_SECRET}
     ports:
       - "${BACKEND_PORT}:8080"
 
-  # frontend:
-  #   build: ./frontend
-  #   container_name: sqld-frontend
-  #   depends_on: [backend]
-  #   ports:
-  #     - "5173:5173"
+  # Frontend: React-App, ausgeliefert von nginx. nginx leitet /api an das
+  # Backend weiter, damit Seite und API denselben Ursprung haben (Cookies).
+  frontend:
+    build: ./frontend
+    container_name: sqld-frontend
+    depends_on:
+      - backend
+    ports:
+      - "${FRONTEND_PORT:-5173}:80"
 
   # mcp-server:
   #   build: ./mcp-server

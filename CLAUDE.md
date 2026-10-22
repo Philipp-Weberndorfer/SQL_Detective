@@ -28,12 +28,17 @@ Java 21, Maven. Das Backend liegt unter `backend/`, Paketwurzel `at.htlwels.sqld
 ## Befehle
 
 ```bash
-docker compose up                     # alles starten (beide Datenbanken + Backend)
+docker compose up                     # alles starten (beide Datenbanken, Backend, Frontend auf :5173)
 docker compose down -v                # Datenbanken zurücksetzen (Init-Skripte laufen neu)
 
-mvn test                              # Unit-Tests (aus der Projektwurzel, alle Java-Module)
+mvn test                              # Backend-Tests inkl. Testcontainers - Docker muss laufen
 cd backend && mvn spring-boot:run     # Backend allein starten (Datenbanken müssen laufen)
+cd frontend && npm run dev            # Frontend mit Vite, /api geht an localhost:8080
+cd frontend && npm test               # Frontend-Tests (Vitest)
 ```
+
+Integrationstests nutzen `TestDatabases` (Testcontainers) und laden genau die Skripte aus `db/` –
+Sicherheitstests also immer gegen echtes PostgreSQL, nie gegen H2 oder Mocks.
 
 Beim lokalen Start aus der IDE greift das Backend auf `localhost:5432` und `localhost:5433` zu;
 im Container auf die Dienstnamen `app-db` und `game-db`. Beides steht in `application.yml`
@@ -43,8 +48,14 @@ Endpunkte:
 
 | Methode | Pfad | Zweck |
 |---|---|---|
-| GET | `/api/health` | Status und Erreichbarkeit beider Datenbanken |
+| GET | `/api/health` | Status und Erreichbarkeit beider Datenbanken (offen) |
+| POST | `/api/auth/register`, `/api/auth/login` | Konto anlegen, anmelden (offen) |
+| POST | `/api/auth/logout` · GET `/api/auth/me` | abmelden, aktueller Benutzer |
 | POST | `/api/queries` | Spielerabfrage ausführen, Body `{"sql": "SELECT ..."}` |
+
+Anmeldung über Sitzung + CSRF-Cookie (AE-08). Alles außer den offenen Endpunkten und
+`/swagger-ui.html` verlangt eine Anmeldung. Fehler laufen zentral über `api/ApiExceptionHandler`
+und haben immer die Form `{"message", "type"}`.
 
 ## Architekturregeln
 
@@ -55,7 +66,8 @@ Diese drei Punkte sind nicht verhandelbar – sie sind der Kern des Projekts:
 
 2. **Spieler-SQL erreicht nur die Spieldatenbank, und zwar nur lesend.** Die Verbindung für Spielerabfragen
    läuft ausschließlich über den Benutzer `game_readonly`, der nur `SELECT` darf. Die Validierung in der
-   Anwendung ist die erste Schicht, der Datenbankbenutzer die zweite. Beide müssen bestehen bleiben.
+   Anwendung ist die erste Schicht, der Datenbankbenutzer die zweite, die READ ONLY-Transaktion mit
+   anschließendem Rollback die dritte (`autoCommit=false` im Pool ist dafür Pflicht). Alle müssen bestehen bleiben.
 
 3. **Die KI darf Lösungen nicht sehen können.** Referenzlösungen, erwartete Ergebnisse und noch nicht
    gefundene Beweise werden niemals über MCP-Tools herausgegeben. Falldaten sind für die KI Daten,
