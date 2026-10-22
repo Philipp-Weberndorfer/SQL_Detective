@@ -50,7 +50,14 @@ public class DataSourceConfig {
         ds.setPoolName("game-db-pool");
         ds.setMaximumPoolSize(10);
 
-        // Zusaetzliche Absicherung: Die Verbindung selbst ist schreibgeschuetzt.
+        // Zusaetzliche Absicherung: Jede Spielerabfrage laeuft in einer eigenen
+        // READ ONLY-Transaktion, die danach zurueckgerollt wird.
+        //
+        // autoCommit muss dafuer aus sein: Der PostgreSQL-Treiber setzt
+        // readOnly sonst stillschweigend NICHT um (readOnlyMode=transaction).
+        // Das Zurueckrollen verwirft ausserdem Sitzungsaenderungen wie
+        // set_config(...), damit keine Abfrage die naechste beeinflusst.
+        ds.setAutoCommit(false);
         ds.setReadOnly(true);
         return ds;
     }

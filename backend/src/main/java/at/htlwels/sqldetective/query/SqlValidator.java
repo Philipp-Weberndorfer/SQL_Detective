@@ -37,7 +37,8 @@ public class SqlValidator {
             "VACUUM", "ANALYZE", "CLUSTER", "REINDEX", "LOCK", "COMMENT",
             "PREPARE", "EXECUTE", "DEALLOCATE", "DECLARE", "FETCH", "MOVE",
             "LISTEN", "NOTIFY", "UNLISTEN", "REFRESH", "IMPORT", "MERGE",
-            "BEGIN", "COMMIT", "ROLLBACK", "SAVEPOINT"
+            "BEGIN", "COMMIT", "ROLLBACK", "SAVEPOINT",
+            "INTO"      // SELECT ... INTO neue_tabelle legt eine Tabelle an
     );
 
     private static final Pattern WORD = Pattern.compile("[A-Za-z_][A-Za-z0-9_]*");
@@ -92,6 +93,12 @@ public class SqlValidator {
      *   SELECT 1 --; DROP TABLE persons    ->  SELECT 1
      *   SELECT 'DROP TABLE persons'        ->  SELECT ''
      *   SELECT 1 /* DROP *&#47; FROM t     ->  SELECT 1   FROM t
+     *   SELECT $$ -- $$; DROP TABLE x      ->  SELECT ''; DROP TABLE x
+     *   SELECT E'\'' ; DROP TABLE x        ->  SELECT E'' ; DROP TABLE x
+     *
+     * Die Zerlegung muss genau der von PostgreSQL entsprechen. Wo sie
+     * abweicht, liesse sich ein Befehl vor der Pruefung verstecken - deshalb
+     * werden auch Dollar-Quoting und E-Strings (Backslash-Escapes) erkannt.
      */
     String neutralise(String sql) {
         StringBuilder out = new StringBuilder(sql.length());
@@ -129,12 +136,29 @@ public class SqlValidator {
                 continue;
             }
 
-            // Zeichenkette - Inhalt verwerfen, '' bleibt als Platzhalter stehen
+            // Dollar-Quoting: $$...$$ oder $tag$...$tag$ - Inhalt verwerfen
+            if (c == '$' && !isIdentifierPart(c(sql, i - 1))) {
+                int tagEnd = dollarTagEnd(sql, i);
+                if (tagEnd > 0) {
+                    String tag = sql.substring(i, tagEnd);
+                    int close = sql.indexOf(tag, tagEnd);
+                    out.append("''");
+                    i = close < 0 ? n : close + tag.length();
+                    continue;
+                }
+            }
+
+            // Zeichenkette - Inhalt verwerfen, '' bleibt als Platzhalter stehen.
+            // In E'...' maskiert ein Backslash das folgende Zeichen, auch ein Hochkomma.
             if (c == '\'') {
+                char prev = c(sql, i - 1);
+                boolean escapeString = (prev == 'E' || prev == 'e') && !isIdentifierPart(c(sql, i - 2));
                 out.append("''");
                 i++;
                 while (i < n) {
-                    if (sql.charAt(i) == '\'') {
+                    if (escapeString && sql.charAt(i) == '\\') {
+                        i += 2;
+                    } else if (sql.charAt(i) == '\'') {
                         if (i + 1 < n && sql.charAt(i + 1) == '\'') {
                             i += 2;   // verdoppeltes Hochkomma innerhalb der Zeichenkette
                         } else {
@@ -168,6 +192,27 @@ public class SqlValidator {
     }
 
     private static char c(String s, int i) {
-        return i < s.length() ? s.charAt(i) : '\0';
+        return i >= 0 && i < s.length() ? s.charAt(i) : '\0';
+    }
+
+    private static boolean isIdentifierPart(char ch) {
+        return Character.isLetterOrDigit(ch) || ch == '_' || ch == '$';
+    }
+
+    /**
+     * Prueft, ob bei {@code start} ein Dollar-Quote-Tag beginnt ($$ oder $tag$),
+     * und liefert die Position direkt dahinter - sonst -1. Ein Tag folgt den
+     * Regeln fuer Bezeichner, darf aber kein $ enthalten und nicht mit einer
+     * Ziffer beginnen ($1 ist ein Parameter, kein Quote).
+     */
+    private static int dollarTagEnd(String s, int start) {
+        int i = start + 1;
+        if (i < s.length() && Character.isDigit(s.charAt(i))) {
+            return -1;
+        }
+        while (i < s.length() && (Character.isLetterOrDigit(s.charAt(i)) || s.charAt(i) == '_')) {
+            i++;
+        }
+        return c(s, i) == '$' ? i + 1 : -1;
     }
 }

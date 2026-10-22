@@ -86,6 +86,38 @@ class SqlValidatorTest {
     }
 
     @ParameterizedTest
+    @ValueSource(strings = {
+            "SELECT $$ -- $$; DROP TABLE persons",
+            "SELECT $tag$ /* $tag$; DELETE FROM persons; -- */",
+            "SELECT E'\\'' ; DROP TABLE persons; --'",
+            "SELECT e'\\\\' ; DROP TABLE persons",
+            "SELECT 'a' /* ' */ ; DROP TABLE persons"
+    })
+    @DisplayName("Dollar-Quoting und E-Strings koennen die Pruefung nicht aushebeln")
+    void quotingTricksDoNotBypassValidation(String sql) {
+        assertThrows(InvalidQueryException.class, () -> validator.validate(sql));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "SELECT $$DROP TABLE persons$$ AS text",
+            "SELECT E'It\\'s; fine' AS text",
+            "SELECT 'a;b' AS text",
+            "SELECT \"first_name\" FROM persons",
+            "SELECT first_name AS \"DROP\" FROM persons"
+    })
+    @DisplayName("Schluesselwoerter und Semikolons in Texten sind erlaubt")
+    void keywordsInsideLiteralsAreAllowed(String sql) {
+        assertDoesNotThrow(() -> validator.validate(sql));
+    }
+
+    @Test
+    @DisplayName("SELECT ... INTO legt eine Tabelle an und wird abgewiesen")
+    void blocksSelectInto() {
+        assertThrows(InvalidQueryException.class, () -> validator.validate("SELECT * INTO kopie FROM persons"));
+    }
+
+    @ParameterizedTest
     @ValueSource(strings = {"", "   ", "\n\t"})
     @DisplayName("Leere Eingaben werden abgewiesen")
     void blocksEmptyInput(String sql) {

@@ -29,6 +29,8 @@ public class QueryService {
 
     private static final Logger log = LoggerFactory.getLogger(QueryService.class);
 
+    private static final String QUERY_CANCELED = "57014";
+
     private final DataSource gameDataSource;
     private final SqlValidator validator;
     private final int timeoutSeconds;
@@ -53,6 +55,7 @@ public class QueryService {
 
             // Dritte Absicherung auf Verbindungsebene. PostgreSQL weist
             // schreibende Befehle in einer read-only Transaktion ab.
+            // Wirkt nur, weil der Pool mit autoCommit=false arbeitet (DataSourceConfig).
             conn.setReadOnly(true);
 
             try (Statement stmt = conn.createStatement()) {
@@ -62,18 +65,32 @@ public class QueryService {
                 try (ResultSet rs = stmt.executeQuery(sql)) {
                     return read(rs, System.nanoTime() - start);
                 }
+            } finally {
+                // Spielerabfragen aendern nie etwas - alles verwerfen, auch
+                // Sitzungseinstellungen, bevor die Verbindung in den Pool zurueckgeht.
+                conn.rollback();
             }
 
-        } catch (SQLTimeoutException e) {
-            throw new QueryTimeoutException(
-                    "Die Abfrage hat laenger als " + timeoutSeconds + " Sekunden gebraucht und wurde abgebrochen. "
-                            + "Versuche, das Ergebnis staerker einzugrenzen.");
         } catch (SQLException e) {
+            if (isTimeout(e)) {
+                throw new QueryTimeoutException(
+                        "Die Abfrage hat laenger als " + timeoutSeconds + " Sekunden gebraucht und wurde abgebrochen. "
+                                + "Versuche, das Ergebnis staerker einzugrenzen.");
+            }
             log.debug("SQL-Fehler einer Spielerabfrage: {}", e.getMessage());
             // Die PostgreSQL-Meldung wird bewusst durchgereicht - sie ist Teil
             // des Lerneffekts (F28). Der AI Error Coach erklaert sie spaeter.
             throw new SqlExecutionException(e.getMessage(), e);
         }
+    }
+
+    /**
+     * Der PostgreSQL-Treiber meldet einen Abbruch durch setQueryTimeout nicht
+     * als SQLTimeoutException, sondern als normalen Fehler mit dem SQL-State
+     * 57014 (query_canceled).
+     */
+    private static boolean isTimeout(SQLException e) {
+        return e instanceof SQLTimeoutException || QUERY_CANCELED.equals(e.getSQLState());
     }
 
     private QueryResult read(ResultSet rs, long elapsedNanos) throws SQLException {
