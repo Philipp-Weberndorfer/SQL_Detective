@@ -99,3 +99,33 @@ Klasse erzeugt sonst unerwartet hohe Kosten.
 Tools direkt als Tool-Definitionen übergeben? Das beeinflusst den Aufbau des Servers und sollte vor dem
 Start von Sprint 3 feststehen.
 **Datum:**
+
+---
+
+## AE-08 · Login über Sitzung statt JWT
+
+**Entscheidung:** Spring Security mit serverseitiger Sitzung (Cookie `JSESSIONID`, HttpOnly, SameSite=Lax)
+und CSRF-Token im Cookie `XSRF-TOKEN`, das das Frontend im Header `X-XSRF-TOKEN` zurückschickt.
+**Alternativen:** JWT im `Authorization`-Header oder im Cookie.
+**Begründung:** Die Story verlangt ausdrücklich „Login erzeugt eine Sitzung, Logout beendet sie" (F02). Eine
+Sitzung lässt sich serverseitig sofort beenden; ein JWT bleibt bis zum Ablauf gültig, wenn man keine
+Sperrliste baut. Frontend und Backend laufen über denselben Ursprung (Vite-Proxy bzw. nginx), Cookies
+funktionieren also ohne CORS. Weniger selbst geschriebener Sicherheitscode.
+**Konsequenz:** Sitzungen liegen im Speicher des Backends – nach einem Neustart muss man sich neu
+anmelden. Mehrere Backend-Instanzen bräuchten Spring Session; für das Projekt nicht nötig. Jeder
+schreibende Aufruf braucht das CSRF-Token (`frontend/src/api.ts` erledigt das).
+**Datum:** 15.10.2026
+
+---
+
+## AE-09 · Integrationstests mit Testcontainers
+
+**Entscheidung:** Sicherheitsrelevante Tests laufen gegen echte PostgreSQL-16-Container, die mit genau den
+Skripten aus `db/` initialisiert werden (`backend/src/test/.../TestDatabases.java`).
+**Alternativen:** H2 im Speicher, Mocks.
+**Begründung:** Der Kern von SCRUM-25 und SCRUM-28 ist, dass der *Datenbankbenutzer* Schreibbefehle
+abweist. Das kann nur eine echte PostgreSQL-Instanz mit dem echten Rechte-Skript nachweisen; H2 kennt
+weder die Rechte noch PostgreSQL-Fehlermeldungen oder `pg_sleep`.
+**Konsequenz:** `mvn test` braucht ein laufendes Docker. Testcontainers muss mindestens Version 1.21.4 haben,
+ältere Versionen scheitern an Docker Engine 29 („Could not find a valid Docker environment").
+**Datum:** 15.10.2026
