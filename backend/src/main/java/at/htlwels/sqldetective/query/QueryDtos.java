@@ -39,10 +39,5 @@ public final class QueryDtos {
     ) {
     }
 
-    /** Fehlerantwort - wird dem Spieler im Editor angezeigt (F28). */
-    public record QueryError(
-            String message,
-            String type       // VALIDATION | SQL | TIMEOUT | INTERNAL
-    ) {
-    }
+    // Fehlerantworten: siehe at.htlwels.sqldetective.api.ApiError
 }
