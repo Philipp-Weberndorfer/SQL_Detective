@@ -131,7 +131,7 @@ public class QueryService {
         }
 
         return new QueryResult(columns, rows, rows.size(), truncated,
-                elapsedNanos / 1_000_000);
+                elapsedNanos / 1_000_000, null);
     }
 
     /**

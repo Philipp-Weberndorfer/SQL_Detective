@@ -8,12 +8,22 @@ export interface User {
   role: string;
 }
 
+/** Ergebnis der automatischen Missionsprüfung – verrät bei Fehlversuchen nichts über die Lösung. */
+export interface MissionOutcome {
+  missionId: string;
+  solved: boolean;
+  nextMissionId: string | null;
+  allSolved: boolean;
+}
+
 export interface QueryResult {
   columns: string[];
   rows: unknown[][];
   rowCount: number;
   truncated: boolean;
   durationMs: number;
+  /** null, wenn es nichts zu prüfen gab */
+  mission?: MissionOutcome | null;
 }
 
 export type CaseStatus = 'LOCKED' | 'AVAILABLE' | 'IN_PROGRESS' | 'SOLVED';

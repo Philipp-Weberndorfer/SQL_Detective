@@ -1,5 +1,6 @@
 package at.htlwels.sqldetective.query;
 
+import at.htlwels.sqldetective.game.MissionOutcome;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
@@ -32,14 +33,20 @@ public final class QueryDtos {
      * @param rowCount  Anzahl gelieferter Zeilen
      * @param truncated true, wenn wegen des Zeilenlimits abgeschnitten wurde (F35)
      * @param durationMs Laufzeit, wird auch fuer die Lernauswertung protokolliert
+     * @param mission   Ergebnis der Missionspruefung, null wenn es nichts zu pruefen gab
      */
     public record QueryResult(
             List<String> columns,
             List<List<Object>> rows,
             int rowCount,
             boolean truncated,
-            long durationMs
+            long durationMs,
+            MissionOutcome mission
     ) {
+
+        public QueryResult withMission(MissionOutcome outcome) {
+            return new QueryResult(columns, rows, rowCount, truncated, durationMs, outcome);
+        }
     }
 
     // Fehlerantworten: siehe at.htlwels.sqldetective.api.ApiError

@@ -92,6 +92,11 @@ Bewertet wird das **Ergebnis** einer Abfrage, nicht ihr Wortlaut. Zwei verschied
 demselben Ergebnis sind beide richtig. Spaltenreihenfolge und Groß-/Kleinschreibung von Aliasnamen sind
 egal; die Zeilenreihenfolge zählt nur, wenn die Mission sie ausdrücklich verlangt.
 
+Umgesetzt in `game/ResultMatcher` (ohne Datenbank, Unit-Tests in `ResultMatcherTest`). Zusätzliche Spalten
+sind erlaubt, Zeilen werden als Multimenge verglichen, Zahlen und Zeitstempel vereinheitlicht. Jede Abfrage im
+Fall wird über `game/MissionService` automatisch gegen die offene Mission geprüft – ein Fehlversuch liefert nur
+„noch offen“, nie erwartete Werte.
+
 ## Konventionen
 
 - Branches: `feature/SCRUM-<nr>-kurzbeschreibung`

@@ -241,6 +241,43 @@ describe('Database Explorer', () => {
   });
 });
 
+describe('Missionsprüfung', () => {
+  const base: QueryResult = { columns: ['x'], rows: [['1']], rowCount: 1, truncated: false, durationMs: 1 };
+
+  beforeEach(() => {
+    mocked.me.mockResolvedValue(user);
+  });
+
+  it('meldet eine gelöste Mission und lädt den Fortschritt neu', async () => {
+    mocked.runQuery.mockResolvedValue({
+      ...base,
+      mission: { missionId: 'm1', solved: true, nextMissionId: 'm2', allSolved: false },
+    });
+    renderAt('/faelle/case-001');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Ausführen' }));
+
+    expect(await screen.findByRole('status', { name: 'Mission gelöst' })).toHaveTextContent(
+      'Die nächste Mission ist freigeschaltet.',
+    );
+    await waitFor(() => expect(mocked.caseDetail).toHaveBeenCalledTimes(2));
+  });
+
+  it('zeigt bei einem Fehlversuch keine Fehlermeldung, nur dass die Mission offen ist', async () => {
+    mocked.runQuery.mockResolvedValue({
+      ...base,
+      mission: { missionId: 'm1', solved: false, nextMissionId: null, allSolved: false },
+    });
+    renderAt('/faelle/case-001');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Ausführen' }));
+
+    expect(await screen.findByText('Die Mission ist noch offen.')).toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(mocked.caseDetail).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe('SQL-Editor', () => {
   const result: QueryResult = {
     columns: ['first_name', 'last_name'],

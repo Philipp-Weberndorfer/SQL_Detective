@@ -1,8 +1,9 @@
 import { useCallback, useState } from 'react';
-import { ApiError, api, type CaseDetail, type QueryResult } from '../../api';
+import { ApiError, api, type CaseDetail, type MissionOutcome, type QueryResult } from '../../api';
 import { useAuth } from '../../auth';
 import ResultTable from '../ResultTable';
 import SqlEditor from '../SqlEditor';
+import MissionFeedback from './MissionFeedback';
 import SchemaView from './SchemaView';
 import TableExplorer from './TableExplorer';
 
@@ -18,6 +19,8 @@ const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigat
 interface Props {
   detail: CaseDetail;
   onShowBriefing: () => void;
+  /** nach einer gelösten Mission: Fortschritt neu laden */
+  onProgress: () => void;
 }
 
 /**
@@ -25,13 +28,14 @@ interface Props {
  * Ergebnis. Jede Funktion ist eine eigene Komponente, die hier nur
  * eingebunden wird.
  */
-export default function CaseWorkspace({ detail, onShowBriefing }: Props) {
+export default function CaseWorkspace({ detail, onShowBriefing, onProgress }: Props) {
   const { sessionExpired } = useAuth();
   const [sql, setSql] = useState('SELECT * FROM persons;');
   const [result, setResult] = useState<QueryResult | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
   const [running, setRunning] = useState(false);
   const [table, setTable] = useState<string | null>(null);
+  const [outcome, setOutcome] = useState<MissionOutcome | null>(null);
 
   const run = useCallback(async () => {
     if (running || !sql.trim()) {
@@ -39,8 +43,14 @@ export default function CaseWorkspace({ detail, onShowBriefing }: Props) {
     }
     setRunning(true);
     setError(null);
+    setOutcome(null);
     try {
-      setResult(await api.runQuery(detail.id, sql));
+      const r = await api.runQuery(detail.id, sql);
+      setResult(r);
+      setOutcome(r.mission ?? null);
+      if (r.mission?.solved) {
+        onProgress();
+      }
     } catch (err) {
       const apiError = err instanceof ApiError ? err : new ApiError('Unerwarteter Fehler.', 'UNKNOWN', 0);
       if (apiError.status === 401) {
@@ -52,7 +62,7 @@ export default function CaseWorkspace({ detail, onShowBriefing }: Props) {
     } finally {
       setRunning(false);
     }
-  }, [running, sql, detail.id, sessionExpired]);
+  }, [running, sql, detail.id, sessionExpired, onProgress]);
 
   return (
     <div className="workspace-page">
@@ -92,6 +102,8 @@ export default function CaseWorkspace({ detail, onShowBriefing }: Props) {
               <pre>{error.message}</pre>
             </div>
           )}
+
+          {outcome && !error && <MissionFeedback outcome={outcome} />}
 
           {result && !error && <ResultTable result={result} />}
         </section>

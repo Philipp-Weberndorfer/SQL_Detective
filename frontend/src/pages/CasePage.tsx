@@ -40,6 +40,11 @@ export default function CasePage() {
       .catch(fail);
   }, [caseId, fail]);
 
+  /** Fortschritt neu laden, z. B. nach einer gelösten Mission - ohne das Briefing zu zeigen. */
+  const reload = useCallback(() => {
+    api.caseDetail(caseId!).then(setDetail).catch(fail);
+  }, [caseId, fail]);
+
   async function continueInvestigation() {
     if (detail?.status === 'AVAILABLE') {
       setStarting(true);
@@ -80,5 +85,5 @@ export default function CasePage() {
       />
     );
   }
-  return <CaseWorkspace detail={detail} onShowBriefing={() => setShowBriefing(true)} />;
+  return <CaseWorkspace detail={detail} onShowBriefing={() => setShowBriefing(true)} onProgress={reload} />;
 }
