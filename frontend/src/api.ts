@@ -48,6 +48,15 @@ export interface CaseDetail {
   status: CaseStatus;
   currentMissionId: string | null;
   solvedMissionIds: string[];
+  missions: MissionView[];
+}
+
+/** Eine Mission mit Nummer, Frage und Zustand – ohne Lösung. */
+export interface MissionView {
+  id: string;
+  number: number;
+  title: string;
+  state: 'SOLVED' | 'CURRENT' | 'LOCKED';
 }
 
 /** Eine Tabelle des Falls im Database Explorer. */

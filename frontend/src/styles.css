@@ -480,6 +480,33 @@ input {
   font-family: ui-monospace, Consolas, monospace;
 }
 
+.mission-banner {
+  margin: 0 0 0.75rem;
+  padding: 0.75rem 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 5px solid var(--accent);
+  border-radius: 8px;
+}
+
+.mission-banner.done {
+  border-left-color: #3f8a4f;
+}
+
+.mission-count {
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.mission-title {
+  margin: 0.15rem 0 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
 .success-box {
   margin: 0 0 1rem;
   padding: 0.75rem 1rem;

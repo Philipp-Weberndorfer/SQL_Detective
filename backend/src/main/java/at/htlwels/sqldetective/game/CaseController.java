@@ -5,7 +5,9 @@ import at.htlwels.sqldetective.cases.CaseModel.LoadedCase;
 import at.htlwels.sqldetective.cases.CaseRegistry;
 import at.htlwels.sqldetective.game.CaseDtos.CaseDetail;
 import at.htlwels.sqldetective.game.CaseDtos.CaseSummary;
+import at.htlwels.sqldetective.cases.CaseModel.Mission;
 import at.htlwels.sqldetective.game.CaseDtos.Column;
+import at.htlwels.sqldetective.game.CaseDtos.MissionView;
 import at.htlwels.sqldetective.game.CaseDtos.Reference;
 import at.htlwels.sqldetective.game.CaseDtos.TableDetail;
 import at.htlwels.sqldetective.game.CaseDtos.TableSummary;
@@ -102,7 +104,16 @@ public class CaseController {
                 c.definition().missions().stream()
                         .map(m -> m.id())
                         .filter(state.solvedMissions()::contains)
-                        .toList());
+                        .toList(),
+                missions(c, state));
+    }
+
+    private static List<MissionView> missions(LoadedCase c, CaseState state) {
+        List<Mission> all = c.definition().missions();
+        return java.util.stream.IntStream.range(0, all.size())
+                .mapToObj(i -> new MissionView(all.get(i).id(), i + 1, all.get(i).title(),
+                        state.missionState(all.get(i).id())))
+                .toList();
     }
 
     /** case-001 -> 001 */

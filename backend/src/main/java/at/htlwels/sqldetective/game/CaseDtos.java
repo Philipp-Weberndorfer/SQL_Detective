@@ -47,7 +47,12 @@ public final class CaseDtos {
             String briefing,            // Ausgangslage (F12)
             CaseStatus status,
             String currentMissionId,
-            List<String> solvedMissionIds
+            List<String> solvedMissionIds,
+            List<MissionView> missions
     ) {
+    }
+
+    /** Eine Mission mit Nummer, Frage und Zustand fuer den Spieler (F14, F43) - ohne Loesung. */
+    public record MissionView(String id, int number, String title, ProgressService.MissionState state) {
     }
 }

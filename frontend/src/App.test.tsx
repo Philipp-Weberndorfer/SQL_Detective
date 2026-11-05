@@ -37,6 +37,21 @@ const detail: CaseDetail = {
   status: 'IN_PROGRESS',
   currentMissionId: 'm1',
   solvedMissionIds: [],
+  missions: [
+    { id: 'm1', number: 1, title: 'Wem war Notebook NB-042 zugeordnet?', state: 'CURRENT' },
+    { id: 'm2', number: 2, title: 'Wer hat sich zuletzt auf NB-042 angemeldet?', state: 'LOCKED' },
+  ],
+};
+
+/** Derselbe Fall, nachdem Mission 1 gelöst wurde. */
+const afterMission1: CaseDetail = {
+  ...detail,
+  currentMissionId: 'm2',
+  solvedMissionIds: ['m1'],
+  missions: [
+    { ...detail.missions[0], state: 'SOLVED' },
+    { ...detail.missions[1], state: 'CURRENT' },
+  ],
 };
 
 function renderAt(path: string) {
@@ -275,6 +290,50 @@ describe('Missionsprüfung', () => {
     expect(await screen.findByText('Die Mission ist noch offen.')).toBeInTheDocument();
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     expect(mocked.caseDetail).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('Aktuelle Mission', () => {
+  beforeEach(() => {
+    mocked.me.mockResolvedValue(user);
+  });
+
+  it('steht über dem Editor und wechselt nach dem Lösen ohne Neuladen zur nächsten', async () => {
+    mocked.caseDetail.mockResolvedValueOnce(detail).mockResolvedValueOnce(afterMission1);
+    mocked.runQuery.mockResolvedValue({
+      columns: ['x'],
+      rows: [],
+      rowCount: 0,
+      truncated: false,
+      durationMs: 1,
+      mission: { missionId: 'm1', solved: true, nextMissionId: 'm2', allSolved: false },
+    });
+    renderAt('/faelle/case-001');
+
+    const banner = await screen.findByRole('region', { name: 'Aktuelle Mission' });
+    expect(banner).toHaveTextContent('Mission 1 von 2');
+    expect(banner).toHaveTextContent('Wem war Notebook NB-042 zugeordnet?');
+
+    await userEvent.click(screen.getByRole('button', { name: 'Ausführen' }));
+
+    expect(await screen.findByRole('status', { name: 'Mission gelöst' })).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByRole('region', { name: 'Aktuelle Mission' })).toHaveTextContent('Mission 2 von 2'),
+    );
+  });
+
+  it('zeigt nach der letzten Mission den Hinweis auf den Fallabschluss', async () => {
+    mocked.caseDetail.mockResolvedValue({
+      ...detail,
+      currentMissionId: null,
+      solvedMissionIds: ['m1', 'm2'],
+      missions: detail.missions.map((m) => ({ ...m, state: 'SOLVED' as const })),
+    });
+    renderAt('/faelle/case-001');
+
+    expect(await screen.findByRole('region', { name: 'Aktuelle Mission' })).toHaveTextContent(
+      'Alle Missionen sind gelöst.',
+    );
   });
 });
 

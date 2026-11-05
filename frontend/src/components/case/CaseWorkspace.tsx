@@ -3,6 +3,7 @@ import { ApiError, api, type CaseDetail, type MissionOutcome, type QueryResult }
 import { useAuth } from '../../auth';
 import ResultTable from '../ResultTable';
 import SqlEditor from '../SqlEditor';
+import MissionBanner from './MissionBanner';
 import MissionFeedback from './MissionFeedback';
 import SchemaView from './SchemaView';
 import TableExplorer from './TableExplorer';
@@ -82,6 +83,7 @@ export default function CaseWorkspace({ detail, onShowBriefing, onProgress }: Pr
         </div>
 
         <section className="workspace-main" aria-label="SQL-Editor und Ergebnis">
+          <MissionBanner missions={detail.missions} />
           <SqlEditor value={sql} onChange={setSql} onRun={run} />
 
           <div className="toolbar">
