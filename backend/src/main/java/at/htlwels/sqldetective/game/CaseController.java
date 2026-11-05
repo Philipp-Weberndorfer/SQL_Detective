@@ -42,7 +42,7 @@ public class CaseController {
         return cases.all().stream()
                 .map(c -> new CaseSummary(
                         c.id(),
-                        c.id().substring("case-".length()),
+                        number(c),
                         c.definition().title(),
                         c.definition().difficulty(),
                         c.definition().focus(),
@@ -67,13 +67,21 @@ public class CaseController {
     private CaseDetail toDetail(LoadedCase c, CaseState state) {
         return new CaseDetail(
                 c.id(),
+                number(c),
                 c.definition().title(),
+                c.definition().difficulty(),
+                c.definition().briefing(),
                 state.status(),
                 state.currentMissionId(),
                 c.definition().missions().stream()
                         .map(m -> m.id())
                         .filter(state.solvedMissions()::contains)
                         .toList());
+    }
+
+    /** case-001 -> 001 */
+    private static String number(LoadedCase c) {
+        return c.id().substring("case-".length());
     }
 
     private long userId(Authentication auth) {

@@ -31,7 +31,10 @@ export interface CaseSummary {
 /** Ein Fall mit dem Fortschritt des angemeldeten Spielers. */
 export interface CaseDetail {
   id: string;
+  number: string;
   title: string;
+  difficulty: number;
+  briefing: string;
   status: CaseStatus;
   currentMissionId: string | null;
   solvedMissionIds: string[];

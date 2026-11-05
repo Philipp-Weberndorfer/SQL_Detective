@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
-import { ApiError, api, type CaseSummary, type QueryResult } from './api';
+import { ApiError, api, type CaseDetail, type CaseSummary, type QueryResult } from './api';
 import App from './App';
 import { AuthProvider } from './auth';
 
@@ -25,6 +25,18 @@ vi.mock('./api', async (importOriginal) => {
 const mocked = vi.mocked(api);
 const user = { id: 1, username: 'max', email: 'max@example.com', role: 'player' };
 
+/** Fall 001, schon begonnen - der Editor erscheint ohne Briefing. */
+const detail: CaseDetail = {
+  id: 'case-001',
+  number: '001',
+  title: 'Der verschwundene Laptop',
+  difficulty: 1,
+  briefing: 'Freitag um 16:30 Uhr befand sich Notebook NB-042 noch im Netzwerklabor.',
+  status: 'IN_PROGRESS',
+  currentMissionId: 'm1',
+  solvedMissionIds: [],
+};
+
 function renderAt(path: string) {
   return render(
     <MemoryRouter initialEntries={[path]} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
@@ -37,6 +49,7 @@ function renderAt(path: string) {
 
 beforeEach(() => {
   vi.resetAllMocks();
+  mocked.caseDetail.mockResolvedValue(detail);
 });
 
 describe('Anmeldung', () => {
@@ -129,6 +142,45 @@ describe('Fallübersicht', () => {
   it('leitet die alte Editor-Adresse auf die Fallübersicht um', async () => {
     renderAt('/editor');
     expect(await screen.findByRole('heading', { name: 'Fälle' })).toBeInTheDocument();
+  });
+});
+
+describe('Case Briefing', () => {
+  beforeEach(() => {
+    mocked.me.mockResolvedValue(user);
+  });
+
+  it('zeigt beim ersten Öffnen zuerst das Briefing und startet dann die Ermittlung', async () => {
+    mocked.caseDetail.mockResolvedValue({ ...detail, status: 'AVAILABLE', currentMissionId: null });
+    mocked.startCase.mockResolvedValue(detail);
+    renderAt('/faelle/case-001');
+
+    expect(await screen.findByRole('heading', { name: 'Der verschwundene Laptop' })).toBeInTheDocument();
+    expect(screen.getByText('CASE #001')).toBeInTheDocument();
+    expect(screen.getByText(/Notebook NB-042 noch im Netzwerklabor/)).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Ermittlungsdatenbank' })).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Ermittlung starten' }));
+
+    expect(mocked.startCase).toHaveBeenCalledWith('case-001');
+    expect(await screen.findByRole('heading', { name: 'Ermittlungsdatenbank' })).toBeInTheDocument();
+  });
+
+  it('geht bei einem begonnenen Fall direkt zum Editor', async () => {
+    renderAt('/faelle/case-001');
+    expect(await screen.findByRole('heading', { name: 'Ermittlungsdatenbank' })).toBeInTheDocument();
+    expect(mocked.startCase).not.toHaveBeenCalled();
+  });
+
+  it('lässt sich während des Falls wieder öffnen', async () => {
+    renderAt('/faelle/case-001');
+    await userEvent.click(await screen.findByRole('button', { name: 'Briefing' }));
+
+    expect(screen.getByText(/Notebook NB-042 noch im Netzwerklabor/)).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Zurück zur Ermittlung' }));
+
+    expect(await screen.findByRole('heading', { name: 'Ermittlungsdatenbank' })).toBeInTheDocument();
+    expect(mocked.startCase).not.toHaveBeenCalled();
   });
 });
 

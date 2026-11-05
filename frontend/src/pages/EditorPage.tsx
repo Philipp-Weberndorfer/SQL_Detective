@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { ApiError, api, type QueryResult } from '../api';
+import { ApiError, api, type CaseDetail, type QueryResult } from '../api';
 import { useAuth } from '../auth';
 import ResultTable from '../components/ResultTable';
 import SqlEditor from '../components/SqlEditor';
@@ -13,7 +13,13 @@ const ERROR_TITLES: Record<string, string> = {
 
 const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform);
 
-export default function EditorPage({ caseId }: { caseId: string }) {
+interface Props {
+  caseId: string;
+  detail: CaseDetail;
+  onShowBriefing: () => void;
+}
+
+export default function EditorPage({ caseId, detail, onShowBriefing }: Props) {
   const { sessionExpired } = useAuth();
   const [sql, setSql] = useState('SELECT * FROM persons;');
   const [result, setResult] = useState<QueryResult | null>(null);
@@ -43,6 +49,14 @@ export default function EditorPage({ caseId }: { caseId: string }) {
 
   return (
     <div className="editor-page">
+      <div className="case-header">
+        <span className="case-header-title">
+          <span className="case-number">#{detail.number}</span> {detail.title}
+        </span>
+        <button type="button" className="secondary" onClick={onShowBriefing}>
+          Briefing
+        </button>
+      </div>
       <h1>Ermittlungsdatenbank</h1>
       <p className="muted">
         Tabellen in Fall #001: persons, rooms, devices, access_logs, device_logins, wifi_connections, lessons,

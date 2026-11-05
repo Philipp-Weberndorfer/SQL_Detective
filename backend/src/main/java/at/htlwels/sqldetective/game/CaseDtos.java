@@ -26,7 +26,10 @@ public final class CaseDtos {
     /** Ein Fall mit dem Fortschritt des angemeldeten Spielers. */
     public record CaseDetail(
             String id,
+            String number,
             String title,
+            int difficulty,
+            String briefing,            // Ausgangslage (F12)
             CaseStatus status,
             String currentMissionId,
             List<String> solvedMissionIds

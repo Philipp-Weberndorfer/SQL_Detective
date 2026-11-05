@@ -244,6 +244,43 @@ input {
   color: var(--border);
 }
 
+.briefing {
+  max-width: 720px;
+  margin: 2rem auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.briefing .case-number {
+  margin: 0;
+  letter-spacing: 0.1em;
+}
+
+.briefing h1 {
+  margin: 0;
+  font-size: 2rem;
+}
+
+.briefing-text {
+  white-space: pre-line;
+  font-size: 1.1rem;
+  margin: 0.5rem 0 1rem;
+}
+
+.case-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.case-header-title {
+  font-weight: 700;
+}
+
 /* ------------------------------------------------------------- Editor */
 
 .sql-editor {
