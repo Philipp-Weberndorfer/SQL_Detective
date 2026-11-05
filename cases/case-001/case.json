@@ -1,61 +1,202 @@
 {
-  "_hinweis": "Zwischenstand: erst Mission 1. Die Missionen 2 bis 5, die Beweise und das Finale folgen mit SCRUM-98. Format und Regeln: docs/architektur/fall-format.md",
-
   "formatVersion": 1,
   "id": "case-001",
   "title": "Der verschwundene Laptop",
   "difficulty": 1,
-  "focus": ["SELECT", "WHERE"],
+  "focus": ["SELECT", "WHERE", "JOIN"],
   "requires": [],
 
-  "briefing": "Freitag um 16:30 Uhr befand sich Notebook NB-042 noch im Netzwerklabor. Montagmorgen um 07:15 Uhr wurde festgestellt, dass das Geraet fehlt. Die Ueberwachungskamera im Gang ist ausgefallen. Es stehen aber Daten aus dem Zutrittssystem, dem WLAN, dem Inventarsystem und dem Stundenplan zur Verfuegung.",
-  "goal": "Rekonstruiere, was zwischen Freitag 16:30 Uhr und Montag 07:15 Uhr passiert ist.",
+  "briefing": "Freitag, 2. Oktober, 16:30 Uhr: Herwig Lang räumt nach dem Unterricht das Netzwerklabor (Labor 3) auf. Notebook NB-042 liegt noch auf seinem Platz.\n\nMontagmorgen um 07:15 Uhr ist das Gerät verschwunden.\n\nDie Überwachungskamera im Gang war das ganze Wochenende ausgefallen. Dafür gibt es Daten aus dem Zutrittssystem, dem WLAN, dem Inventarsystem und dem Stundenplan – und die Aussagen der Beteiligten.",
+  "goal": "Finde heraus, wer das Notebook NB-042 zwischen Freitag 16:30 Uhr und Montag 07:15 Uhr aus dem Labor mitgenommen hat.",
 
   "missions": [
     {
       "id": "m1",
-      "title": "Wem war Notebook NB-042 zugeordnet?",
+      "title": "Wem ist Notebook NB-042 zugeordnet?",
       "learningGoals": ["SELECT", "WHERE"],
-
       "expectedResult": {
         "columns": ["first_name", "last_name"],
         "rows": [["Max", "Mustermann"]],
         "orderMatters": false
       },
-
       "hints": [
-        { "level": 1, "text": "Welche Tabelle koennte festhalten, wem ein Geraet gehoert?" },
-        { "level": 2, "text": "Sieh dir die Tabelle devices an - vor allem die Spalte assigned_to." },
-        { "level": 3, "text": "In assigned_to steht nur eine Nummer. Du brauchst eine zweite Tabelle, um daraus einen Namen zu machen." },
+        { "level": 1, "text": "Welche Tabelle könnte festhalten, wem ein Gerät gehört?" },
+        { "level": 2, "text": "Sieh dir die Tabelle devices an – vor allem die Spalte assigned_to." },
+        { "level": 3, "text": "In assigned_to steht nur eine Nummer. Mit einem JOIN auf persons wird daraus ein Name." },
         { "level": 4, "text": "SELECT p.first_name, p.last_name FROM devices d JOIN persons p ON ... WHERE d.inventory_no = ...;" }
       ],
-
-      "solution": "SELECT p.first_name, p.last_name FROM devices d JOIN persons p ON p.id = d.assigned_to WHERE d.inventory_no = 'NB-042';",
+      "solution": "SELECT p.first_name, p.last_name FROM devices d JOIN persons p ON p.id = d.assigned_to WHERE d.inventory_no = 'NB-042'",
       "testQueries": {
         "correct": [
-          "SELECT first_name, last_name FROM persons WHERE id = (SELECT assigned_to FROM devices WHERE inventory_no = 'NB-042')"
+          "SELECT first_name, last_name FROM persons WHERE id = (SELECT assigned_to FROM devices WHERE inventory_no = 'NB-042')",
+          "SELECT p.* FROM persons p, devices d WHERE d.assigned_to = p.id AND d.inventory_no LIKE 'NB-042'"
         ],
         "wrong": [
-          "SELECT first_name, last_name FROM persons"
+          "SELECT * FROM devices WHERE inventory_no = 'NB-042'"
         ]
       },
       "evidenceOnSuccess": "e1"
+    },
+    {
+      "id": "m2",
+      "title": "Wer hat sich zuletzt auf NB-042 angemeldet?",
+      "learningGoals": ["ORDER BY", "LIMIT"],
+      "expectedResult": {
+        "columns": ["first_name", "last_name"],
+        "rows": [["Tobias", "Gruber"]],
+        "orderMatters": false
+      },
+      "hints": [
+        { "level": 1, "text": "Irgendwo wird festgehalten, wer sich wann auf welchem Gerät angemeldet hat." },
+        { "level": 2, "text": "Die Tabelle device_logins enthält jede Anmeldung mit login_time." },
+        { "level": 3, "text": "Sortiere die Anmeldungen von NB-042 nach login_time absteigend und nimm nur die erste Zeile: ORDER BY ... DESC und LIMIT 1." },
+        { "level": 4, "text": "SELECT p.first_name, p.last_name FROM device_logins l JOIN devices d ON ... JOIN persons p ON ... WHERE d.inventory_no = 'NB-042' ORDER BY ... DESC LIMIT 1;" }
+      ],
+      "solution": "SELECT p.first_name, p.last_name FROM device_logins l JOIN devices d ON d.id = l.device_id JOIN persons p ON p.id = l.person_id WHERE d.inventory_no = 'NB-042' ORDER BY l.login_time DESC LIMIT 1",
+      "testQueries": {
+        "correct": [
+          "SELECT p.first_name, p.last_name, l.login_time FROM device_logins l JOIN persons p ON p.id = l.person_id WHERE l.device_id = (SELECT id FROM devices WHERE inventory_no = 'NB-042') ORDER BY l.login_time DESC LIMIT 1",
+          "SELECT first_name, last_name FROM persons WHERE id = (SELECT person_id FROM device_logins WHERE device_id = 3 AND login_time = (SELECT MAX(login_time) FROM device_logins WHERE device_id = 3))"
+        ],
+        "wrong": [
+          "SELECT p.first_name, p.last_name FROM device_logins l JOIN persons p ON p.id = l.person_id WHERE l.device_id = 3 ORDER BY l.login_time LIMIT 1"
+        ]
+      },
+      "evidenceOnSuccess": "e2"
+    },
+    {
+      "id": "m3",
+      "title": "Wer war am Freitag nach 16:30 Uhr noch im Gebäude?",
+      "learningGoals": ["JOIN", "WHERE", "DISTINCT"],
+      "expectedResult": {
+        "columns": ["first_name", "last_name"],
+        "rows": [
+          ["Herwig", "Lang"],
+          ["Sabine", "Moser"],
+          ["Lisa", "Hofer"],
+          ["Elena", "Fischer"],
+          ["Tobias", "Gruber"],
+          ["Peter", "Wimmer"]
+        ],
+        "orderMatters": false
+      },
+      "hints": [
+        { "level": 1, "text": "Wer durch eine Tür geht, hinterlässt eine Spur im Zutrittssystem." },
+        { "level": 2, "text": "In access_logs steht für jede Tür, wer wann hindurchgegangen ist (access_time)." },
+        { "level": 3, "text": "Verbinde access_logs mit persons und filtere auf Freitag, 2. Oktober, nach 16:30 Uhr – aber nicht auf Samstag oder Montag. Mit DISTINCT erscheint jede Person nur einmal." },
+        { "level": 4, "text": "SELECT DISTINCT p.first_name, p.last_name FROM access_logs a JOIN persons p ON ... WHERE a.access_time > '2026-10-02 16:30' AND a.access_time < ...;" }
+      ],
+      "solution": "SELECT DISTINCT p.first_name, p.last_name FROM access_logs a JOIN persons p ON p.id = a.person_id WHERE a.access_time > '2026-10-02 16:30' AND a.access_time < '2026-10-03'",
+      "testQueries": {
+        "correct": [
+          "SELECT first_name, last_name FROM persons WHERE id IN (SELECT person_id FROM access_logs WHERE access_time BETWEEN '2026-10-02 16:30:01' AND '2026-10-02 23:59:59')",
+          "SELECT p.first_name, p.last_name FROM persons p JOIN access_logs a ON a.person_id = p.id WHERE a.access_time::date = '2026-10-02' AND a.access_time::time > '16:30' GROUP BY p.id, p.first_name, p.last_name"
+        ],
+        "wrong": [
+          "SELECT DISTINCT p.first_name, p.last_name FROM access_logs a JOIN persons p ON p.id = a.person_id WHERE a.access_time > '2026-10-02 16:30'"
+        ]
+      },
+      "evidenceOnSuccess": "e3"
+    },
+    {
+      "id": "m4",
+      "title": "Wer davon hat nach 16:30 Uhr das Labor 3 betreten?",
+      "learningGoals": ["JOIN", "mehrere Bedingungen"],
+      "expectedResult": {
+        "columns": ["first_name", "last_name"],
+        "rows": [
+          ["Herwig", "Lang"],
+          ["Tobias", "Gruber"],
+          ["Peter", "Wimmer"]
+        ],
+        "orderMatters": false
+      },
+      "hints": [
+        { "level": 1, "text": "Nicht jeder, der noch im Haus war, kam auch ins Netzwerklabor." },
+        { "level": 2, "text": "Die Räume stehen in der Tabelle rooms – das Netzwerklabor heißt dort Labor 3." },
+        { "level": 3, "text": "Du brauchst access_logs, persons und rooms gleichzeitig – und mehrere Bedingungen mit AND: Raum, Tag und Uhrzeit." },
+        { "level": 4, "text": "SELECT DISTINCT p.first_name, p.last_name FROM access_logs a JOIN persons p ON ... JOIN rooms r ON ... WHERE r.name = 'Labor 3' AND ...;" }
+      ],
+      "solution": "SELECT DISTINCT p.first_name, p.last_name FROM access_logs a JOIN persons p ON p.id = a.person_id JOIN rooms r ON r.id = a.room_id WHERE r.name = 'Labor 3' AND a.access_time > '2026-10-02 16:30' AND a.access_time < '2026-10-03'",
+      "testQueries": {
+        "correct": [
+          "SELECT DISTINCT p.first_name, p.last_name FROM persons p JOIN access_logs a ON a.person_id = p.id WHERE a.room_id = 3 AND a.direction = 'IN' AND a.access_time BETWEEN '2026-10-02 16:30' AND '2026-10-02 23:59'",
+          "SELECT first_name, last_name FROM persons WHERE id IN (SELECT a.person_id FROM access_logs a JOIN rooms r ON r.id = a.room_id WHERE r.name LIKE 'Labor 3%' AND a.access_time > '2026-10-02 16:30' AND a.access_time < '2026-10-03')"
+        ],
+        "wrong": [
+          "SELECT DISTINCT p.first_name, p.last_name FROM access_logs a JOIN persons p ON p.id = a.person_id WHERE a.room_id = 3"
+        ]
+      },
+      "evidenceOnSuccess": "e4"
+    },
+    {
+      "id": "m5",
+      "title": "Welche Geräte waren am Freitag nach 16:30 Uhr im WLAN von Labor 3 eingebucht – und wem gehören sie?",
+      "learningGoals": ["mehrere JOINs"],
+      "expectedResult": {
+        "columns": ["inventory_no", "first_name", "last_name"],
+        "rows": [
+          ["PH-030", "Herwig", "Lang"],
+          ["NB-044", "Herwig", "Lang"],
+          ["PH-011", "Tobias", "Gruber"],
+          ["NB-042", "Max", "Mustermann"],
+          ["PH-031", "Peter", "Wimmer"]
+        ],
+        "orderMatters": false
+      },
+      "hints": [
+        { "level": 1, "text": "Geräte verraten, wo sie waren: Sie buchen sich ins WLAN ein." },
+        { "level": 2, "text": "wifi_connections hält fest, welches Gerät wann an welchem Zugangspunkt war. Der Zugangspunkt im Labor heißt AP-Labor3." },
+        { "level": 3, "text": "Du brauchst drei Tabellen: wifi_connections, devices und persons – verbunden über device_id und assigned_to. Achte auf den Zeitraum." },
+        { "level": 4, "text": "SELECT d.inventory_no, p.first_name, p.last_name FROM wifi_connections w JOIN devices d ON ... JOIN persons p ON ... WHERE w.access_point = 'AP-Labor3' AND ...;" }
+      ],
+      "solution": "SELECT DISTINCT d.inventory_no, p.first_name, p.last_name FROM wifi_connections w JOIN devices d ON d.id = w.device_id JOIN persons p ON p.id = d.assigned_to WHERE w.access_point = 'AP-Labor3' AND w.connected_at > '2026-10-02 16:30' AND w.connected_at < '2026-10-03'",
+      "testQueries": {
+        "correct": [
+          "SELECT d.inventory_no, p.first_name, p.last_name, w.connected_at FROM devices d JOIN wifi_connections w ON w.device_id = d.id JOIN persons p ON d.assigned_to = p.id WHERE w.access_point = 'AP-Labor3' AND w.connected_at BETWEEN '2026-10-02 16:30' AND '2026-10-02 23:59' ORDER BY w.connected_at",
+          "SELECT inventory_no, first_name, last_name FROM wifi_connections JOIN devices ON devices.id = wifi_connections.device_id JOIN persons ON persons.id = devices.assigned_to WHERE access_point LIKE '%Labor3' AND connected_at::date = '2026-10-02' AND connected_at::time > '16:30'"
+        ],
+        "wrong": [
+          "SELECT d.inventory_no, p.first_name, p.last_name FROM wifi_connections w JOIN devices d ON d.id = w.device_id JOIN persons p ON p.id = d.assigned_to WHERE w.access_point = 'AP-Labor3'"
+        ]
+      },
+      "evidenceOnSuccess": "e5"
     }
   ],
 
   "evidence": [
     {
       "id": "e1",
-      "title": "Geraetezuordnung",
-      "text": "Notebook NB-042 ist Max Mustermann zugeordnet."
+      "title": "Gerätezuordnung",
+      "text": "Notebook NB-042 ist Max Mustermann aus der 4AHIT zugeordnet."
+    },
+    {
+      "id": "e2",
+      "title": "Letzte Anmeldung",
+      "text": "Zuletzt meldete sich Tobias Gruber am Freitag um 18:45 Uhr auf NB-042 an – mehr als zwei Stunden nach Unterrichtsende."
+    },
+    {
+      "id": "e3",
+      "title": "Anwesenheit nach 16:30",
+      "text": "Nach 16:30 Uhr waren noch sechs Personen im Gebäude: Herwig Lang, Sabine Moser, Lisa Hofer, Elena Fischer, Tobias Gruber und Peter Wimmer."
+    },
+    {
+      "id": "e4",
+      "title": "Zutritt Labor 3",
+      "text": "Nach 16:30 Uhr waren nur drei Personen im Labor 3: Herwig Lang um 17:10 Uhr, Tobias Gruber um 18:42 Uhr und Peter Wimmer um 20:00 Uhr."
+    },
+    {
+      "id": "e5",
+      "title": "WLAN-Spur",
+      "text": "Im Labor-WLAN waren nach 16:30 Uhr Herwig Langs Geräte (17:10–17:15), Tobias Grubers Handy (18:40–19:03), NB-042 selbst (18:44–18:59) und Peter Wimmers Handy (20:01–20:09). Um 19:04 Uhr tauchte NB-042 noch einmal auf – am Zugangspunkt beim Haupteingang."
     }
   ],
 
   "conclusion": {
-    "question": "Wem gehoert das Notebook?",
-    "options": ["Max Mustermann", "Anna Berger"],
-    "correct": "Max Mustermann",
-    "requiredEvidence": ["e1"],
-    "maxEvidence": 1
+    "question": "Wer hat das Notebook NB-042 aus dem Labor mitgenommen?",
+    "options": ["Max Mustermann", "Herwig Lang", "Tobias Gruber", "Peter Wimmer"],
+    "correct": "Tobias Gruber",
+    "requiredEvidence": ["e2", "e4", "e5"],
+    "maxEvidence": 3
   }
 }
