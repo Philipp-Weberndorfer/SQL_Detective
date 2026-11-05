@@ -86,6 +86,8 @@ Vollständig und ausprobierbar unter http://localhost:8080/swagger-ui.html.
 | POST | `/api/auth/logout` | ja | Sitzung beenden |
 | GET | `/api/auth/me` | ja | angemeldeter Benutzer |
 | POST | `/api/queries` | ja | Spielerabfrage gegen die Tabellen eines Falls, Body `{"caseId": "case-001", "sql": "SELECT ..."}` |
+| GET | `/api/cases/{id}` | ja | ein Fall mit dem Fortschritt des Spielers |
+| POST | `/api/cases/{id}/start` | ja | Fall beginnen (beim ersten Mal AVAILABLE → IN_PROGRESS) |
 
 Fehler kommen immer als `{"message": "...", "type": "..."}` zurück. `type` ist z. B. `VALIDATION`
 (abgewiesen), `SQL` (PostgreSQL-Fehler), `TIMEOUT`, `UNAUTHORIZED`, `NOT_FOUND` oder `CONFLICT`.

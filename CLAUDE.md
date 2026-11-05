@@ -58,6 +58,11 @@ Endpunkte:
 | POST | `/api/auth/register`, `/api/auth/login` | Konto anlegen, anmelden (offen) |
 | POST | `/api/auth/logout` · GET `/api/auth/me` | abmelden, aktueller Benutzer |
 | POST | `/api/queries` | Spielerabfrage ausführen, Body `{"caseId": "case-001", "sql": "SELECT ..."}` |
+| GET | `/api/cases/{id}` · POST `/api/cases/{id}/start` | Fall mit Fortschritt des Spielers, Fall beginnen |
+
+Spielfortschritt liegt in der Anwendungsdatenbank (`case_progress`, `mission_progress`), Zugriff über
+`game/ProgressRepository`. Öffentliche Antworten sind die Records in `game/CaseDtos` – dort stehen nie
+Lösungsfelder.
 
 Anmeldung über Sitzung + CSRF-Cookie (AE-08). Alles außer den offenen Endpunkten und
 `/swagger-ui.html` verlangt eine Anmeldung. Fehler laufen zentral über `api/ApiExceptionHandler`
