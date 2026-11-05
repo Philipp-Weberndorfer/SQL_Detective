@@ -613,6 +613,38 @@ button.small {
   font-weight: 700;
 }
 
+.conclusion {
+  margin: 0 0 0.75rem;
+}
+
+.conclusion h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.2rem;
+}
+
+.conclusion fieldset {
+  margin: 0 0 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.conclusion legend {
+  font-weight: 700;
+}
+
+.conclusion-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.2rem 0;
+}
+
+.conclusion-option input {
+  width: auto;
+  margin: 0;
+}
+
 .success-box {
   margin: 0 0 1rem;
   padding: 0.75rem 1rem;

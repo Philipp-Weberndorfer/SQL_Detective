@@ -1,8 +1,10 @@
 import { useCallback, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { ApiError, api, type CaseDetail, type MissionOutcome, type QueryResult } from '../../api';
 import { useAuth } from '../../auth';
 import ResultTable from '../ResultTable';
 import SqlEditor from '../SqlEditor';
+import ConclusionPanel from './ConclusionPanel';
 import EvidenceBoard from './EvidenceBoard';
 import EvidenceOffer from './EvidenceOffer';
 import InvestigationPanel from './InvestigationPanel';
@@ -43,6 +45,15 @@ export default function CaseWorkspace({ detail, onShowBriefing, onProgress }: Pr
   /** zählt hoch, wenn sich die gesicherten Beweise ändern - das Evidence Board lädt dann neu */
   const [boardVersion, setBoardVersion] = useState(0);
   const bumpBoard = useCallback(() => setBoardVersion((v) => v + 1), []);
+
+  // Fallabschluss (SCRUM-60): Beweise werden auf dem Evidence Board angekreuzt
+  const [concluding, setConcluding] = useState(false);
+  const [selectedEvidence, setSelectedEvidence] = useState<string[]>([]);
+  const [maxEvidence, setMaxEvidence] = useState(0);
+  const toggleEvidence = useCallback((id: string) => {
+    setSelectedEvidence((current) => (current.includes(id) ? current.filter((e) => e !== id) : [...current, id]));
+  }, []);
+  const solved = detail.status === 'SOLVED';
 
   const run = useCallback(async () => {
     if (running || !sql.trim()) {
@@ -90,7 +101,34 @@ export default function CaseWorkspace({ detail, onShowBriefing, onProgress }: Pr
         </div>
 
         <section className="workspace-main" aria-label="SQL-Editor und Ergebnis">
-          <MissionBanner missions={detail.missions} />
+          {solved && !concluding && (
+            <section className="mission-banner done" aria-label="Fallstatus">
+              <p className="mission-title">✓ Diesen Fall hast du gelöst.</p>
+              <Link to="/faelle">Zur Fallübersicht</Link>
+            </section>
+          )}
+          {!solved && !concluding && (
+            <MissionBanner
+              missions={detail.missions}
+              whenAllSolved={
+                <button type="button" onClick={() => setConcluding(true)}>
+                  Fall abschließen
+                </button>
+              }
+            />
+          )}
+          {concluding && (
+            <ConclusionPanel
+              caseId={detail.id}
+              selectedEvidence={selectedEvidence}
+              onMaxEvidence={setMaxEvidence}
+              onSolved={onProgress}
+              onCancel={() => {
+                setConcluding(false);
+                setSelectedEvidence([]);
+              }}
+            />
+          )}
           <SqlEditor value={sql} onChange={setSql} onRun={run} />
 
           <div className="toolbar">
@@ -127,7 +165,16 @@ export default function CaseWorkspace({ detail, onShowBriefing, onProgress }: Pr
 
         <aside className="workspace-side">
           <InvestigationPanel goal={detail.goal} missions={detail.missions} />
-          <EvidenceBoard caseId={detail.id} version={boardVersion} onSecured={bumpBoard} />
+          <EvidenceBoard
+            caseId={detail.id}
+            version={boardVersion}
+            onSecured={bumpBoard}
+            selection={
+              concluding && !solved
+                ? { selected: selectedEvidence, max: maxEvidence, onToggle: toggleEvidence }
+                : undefined
+            }
+          />
         </aside>
       </div>
     </div>

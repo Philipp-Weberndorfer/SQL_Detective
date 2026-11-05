@@ -23,6 +23,24 @@ export interface EvidenceBoardData {
   total: number;
 }
 
+/** Das Finale: Frage und Antworten – ohne richtige Antwort. */
+export interface ConclusionView {
+  question: string;
+  options: string[];
+  maxEvidence: number;
+  solved: boolean;
+}
+
+/** Ergebnis der Beweisführung. */
+export interface ConclusionResult {
+  solved: boolean;
+  message: string;
+  missionsSolved: number;
+  missionsTotal: number;
+  evidenceSecured: number;
+  evidenceTotal: number;
+}
+
 /** Ergebnis der automatischen Missionsprüfung – verrät bei Fehlversuchen nichts über die Lösung. */
 export interface MissionOutcome {
   missionId: string;
@@ -165,6 +183,9 @@ export const api = {
   table: (caseId: string, table: string) =>
     request<TableDetail>('GET', `/api/cases/${caseId}/tables/${encodeURIComponent(table)}`),
   evidence: (caseId: string) => request<EvidenceBoardData>('GET', `/api/cases/${caseId}/evidence`),
+  conclusion: (caseId: string) => request<ConclusionView>('GET', `/api/cases/${caseId}/conclusion`),
+  submitConclusion: (caseId: string, answer: string, evidenceIds: string[]) =>
+    request<ConclusionResult>('POST', `/api/cases/${caseId}/conclusion`, { answer, evidenceIds }),
   secureEvidence: (caseId: string, evidenceId: string) =>
     request<EvidenceView>('POST', `/api/cases/${caseId}/evidence/${encodeURIComponent(evidenceId)}`),
 };

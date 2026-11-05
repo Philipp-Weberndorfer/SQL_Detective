@@ -68,6 +68,31 @@ public final class CaseDtos {
     public record EvidenceBoard(List<EvidenceView> items, long secured, int total) {
     }
 
+    /** Das Finale eines Falls - ohne richtige Antwort und ohne geforderte Beweise. */
+    public record ConclusionView(String question, List<String> options, int maxEvidence, boolean solved) {
+    }
+
+    /** Was der Spieler vorlegt: eine Antwort und die Beweise, die sie belegen. */
+    public record ConclusionRequest(
+            @jakarta.validation.constraints.NotBlank(message = "Bitte waehle eine Antwort.")
+            String answer,
+
+            @jakarta.validation.constraints.NotNull(message = "Bitte waehle die Beweise aus.")
+            List<String> evidenceIds
+    ) {
+    }
+
+    /** Ergebnis der Beweisfuehrung; bei einem Fehlversuch ohne Hinweis auf die richtige Antwort. */
+    public record ConclusionResult(
+            boolean solved,
+            String message,
+            int missionsSolved,
+            int missionsTotal,
+            long evidenceSecured,
+            int evidenceTotal
+    ) {
+    }
+
     /** Eine Mission mit Nummer, Frage und Zustand fuer den Spieler (F14, F43) - ohne Loesung. */
     public record MissionView(String id, int number, String title, ProgressService.MissionState state) {
     }

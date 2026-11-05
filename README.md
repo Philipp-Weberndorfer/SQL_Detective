@@ -93,6 +93,8 @@ Vollständig und ausprobierbar unter http://localhost:8080/swagger-ui.html.
 | GET | `/api/cases/{id}/tables/{name}` | ja | Spalten einer Tabelle mit Typ, Primär- und Fremdschlüsseln |
 | GET | `/api/cases/{id}/evidence` | ja | Evidence Board: gesicherte und gefundene Beweise mit Text, offene nur mit Titel |
 | POST | `/api/cases/{id}/evidence/{eid}` | ja | gefundenes Beweisstück sichern (409 `RULE`, wenn noch nicht gefunden) |
+| GET | `/api/cases/{id}/conclusion` | ja | Finale: Frage und Antworten (erst nach allen Missionen) |
+| POST | `/api/cases/{id}/conclusion` | ja | Schlussfolgerung vorlegen, Body `{"answer", "evidenceIds"}` |
 
 Fehler kommen immer als `{"message": "...", "type": "..."}` zurück. `type` ist z. B. `VALIDATION`
 (abgewiesen), `SQL` (PostgreSQL-Fehler), `TIMEOUT`, `UNAUTHORIZED`, `NOT_FOUND`, `RULE` (Spielregel) oder `CONFLICT`.

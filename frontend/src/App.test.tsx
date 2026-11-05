@@ -22,6 +22,8 @@ vi.mock('./api', async (importOriginal) => {
       table: vi.fn(),
       secureEvidence: vi.fn(),
       evidence: vi.fn(),
+      conclusion: vi.fn(),
+      submitConclusion: vi.fn(),
     },
   };
 });
@@ -429,6 +431,81 @@ describe('Evidence Board', () => {
 
     expect(mocked.secureEvidence).toHaveBeenCalledWith('case-001', 'e1');
     expect(await within(board).findByText('1 von 1 Beweisen gesichert')).toBeInTheDocument();
+  });
+});
+
+describe('Fall abschließen', () => {
+  const allSolved: CaseDetail = {
+    ...detail,
+    currentMissionId: null,
+    solvedMissionIds: ['m1', 'm2'],
+    missions: detail.missions.map((m) => ({ ...m, state: 'SOLVED' as const })),
+  };
+
+  beforeEach(() => {
+    mocked.me.mockResolvedValue(user);
+    mocked.caseDetail.mockResolvedValue(allSolved);
+    mocked.evidence.mockResolvedValue({
+      items: [
+        { id: 'e1', title: 'Gerätezuordnung', text: 'NB-042 ist Max Mustermann zugeordnet.', state: 'SECURED' },
+        { id: 'e2', title: 'Letzte Anmeldung', text: 'Tobias Gruber, Freitag 18:45.', state: 'SECURED' },
+      ],
+      secured: 2,
+      total: 2,
+    });
+    mocked.conclusion.mockResolvedValue({
+      question: 'Wer hat das Notebook mitgenommen?',
+      options: ['Max Mustermann', 'Tobias Gruber'],
+      maxEvidence: 1,
+      solved: false,
+    });
+  });
+
+  it('wählt Antwort und Beweis auf dem Board und löst den Fall', async () => {
+    mocked.submitConclusion.mockResolvedValue({
+      solved: true,
+      message: 'Fall geloest!',
+      missionsSolved: 2,
+      missionsTotal: 2,
+      evidenceSecured: 2,
+      evidenceTotal: 2,
+    });
+    renderAt('/faelle/case-001');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Fall abschließen' }));
+    const form = await screen.findByRole('form', { name: 'Fall abschließen' });
+    await userEvent.click(await within(form).findByLabelText('Tobias Gruber'));
+
+    const board = screen.getByRole('region', { name: 'Evidence Board' });
+    await userEvent.click(within(board).getByRole('checkbox', { name: 'Letzte Anmeldung' }));
+    // höchstens ein Beweis - der zweite lässt sich nicht mehr ankreuzen
+    expect(within(board).getByRole('checkbox', { name: 'Gerätezuordnung' })).toBeDisabled();
+
+    await userEvent.click(within(form).getByRole('button', { name: 'Schlussfolgerung vorlegen' }));
+
+    expect(mocked.submitConclusion).toHaveBeenCalledWith('case-001', 'Tobias Gruber', ['e2']);
+    const done = await screen.findByRole('region', { name: 'Fall gelöst' });
+    expect(done).toHaveTextContent('2 von 2 Missionen gelöst');
+  });
+
+  it('zeigt bei einer nicht überzeugenden Beweisführung die Meldung und erlaubt einen neuen Versuch', async () => {
+    mocked.submitConclusion.mockResolvedValue({
+      solved: false,
+      message: 'Deine Beweisfuehrung ueberzeugt noch nicht.',
+      missionsSolved: 2,
+      missionsTotal: 2,
+      evidenceSecured: 2,
+      evidenceTotal: 2,
+    });
+    renderAt('/faelle/case-001');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Fall abschließen' }));
+    const form = await screen.findByRole('form', { name: 'Fall abschließen' });
+    await userEvent.click(await within(form).findByLabelText('Max Mustermann'));
+    await userEvent.click(within(form).getByRole('button', { name: 'Schlussfolgerung vorlegen' }));
+
+    expect(await within(form).findByText('Deine Beweisfuehrung ueberzeugt noch nicht.')).toBeInTheDocument();
+    expect(within(form).getByRole('button', { name: 'Schlussfolgerung vorlegen' })).toBeEnabled();
   });
 });
 

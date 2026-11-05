@@ -61,6 +61,8 @@ Endpunkte:
 | GET | `/api/cases` | Fallübersicht |
 | GET | `/api/cases/{id}` · POST `/api/cases/{id}/start` | Fall mit Fortschritt des Spielers, Fall beginnen |
 | GET | `/api/cases/{id}/tables[/{name}]` | Tabellen des Falls, Aufbau einer Tabelle (aus dem Speicher, nicht aus der DB) |
+| GET/POST | `/api/cases/{id}/evidence[/{eid}]` | Evidence Board, Beweis sichern |
+| GET/POST | `/api/cases/{id}/conclusion` | Finale ansehen, Schlussfolgerung vorlegen (Prüfung nur im Backend) |
 
 Spielfortschritt liegt in der Anwendungsdatenbank (`case_progress`, `mission_progress`), Zugriff über
 `game/ProgressRepository`. Öffentliche Antworten sind die Records in `game/CaseDtos` – dort stehen nie
