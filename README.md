@@ -90,6 +90,7 @@ Vollständig und ausprobierbar unter http://localhost:8080/swagger-ui.html.
 | GET | `/api/cases/{id}` | ja | ein Fall mit dem Fortschritt des Spielers |
 | POST | `/api/cases/{id}/start` | ja | Fall beginnen (beim ersten Mal AVAILABLE → IN_PROGRESS) |
 | GET | `/api/cases/{id}/tables` | ja | Tabellen des Falls mit Zeilenanzahl (Database Explorer) |
+| GET | `/api/cases/{id}/tables/{name}` | ja | Spalten einer Tabelle mit Typ, Primär- und Fremdschlüsseln |
 
 Fehler kommen immer als `{"message": "...", "type": "..."}` zurück. `type` ist z. B. `VALIDATION`
 (abgewiesen), `SQL` (PostgreSQL-Fehler), `TIMEOUT`, `UNAUTHORIZED`, `NOT_FOUND` oder `CONFLICT`.

@@ -46,6 +46,19 @@ export interface TableSummary {
   rowCount: number;
 }
 
+/** Aufbau einer Tabelle mit Schlüsseln. */
+export interface TableDetail {
+  name: string;
+  rowCount: number;
+  columns: {
+    name: string;
+    type: string;
+    primaryKey: boolean;
+    notNull: boolean;
+    references: { table: string; column: string } | null;
+  }[];
+}
+
 /** Fehler mit der lesbaren Meldung aus dem Backend (ApiError). */
 export class ApiError extends Error {
   constructor(
@@ -112,4 +125,6 @@ export const api = {
   caseDetail: (caseId: string) => request<CaseDetail>('GET', `/api/cases/${caseId}`),
   startCase: (caseId: string) => request<CaseDetail>('POST', `/api/cases/${caseId}/start`),
   tables: (caseId: string) => request<TableSummary[]>('GET', `/api/cases/${caseId}/tables`),
+  table: (caseId: string, table: string) =>
+    request<TableDetail>('GET', `/api/cases/${caseId}/tables/${encodeURIComponent(table)}`),
 };

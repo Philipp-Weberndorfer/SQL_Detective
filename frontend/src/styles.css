@@ -361,6 +361,68 @@ input {
   white-space: nowrap;
 }
 
+.workspace-left {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.schema-columns {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.88rem;
+}
+
+.schema-columns li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 0.4rem;
+  padding: 0.3rem 0;
+  border-bottom: 1px solid #efece6;
+}
+
+.schema-name {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.3rem;
+  overflow-wrap: anywhere;
+}
+
+.schema-type {
+  font-size: 0.8rem;
+}
+
+.key-badge {
+  padding: 0 0.3rem;
+  border-radius: 4px;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.key-badge.muted-badge {
+  background: var(--border);
+  color: var(--text);
+}
+
+.schema-fk {
+  flex-basis: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--accent);
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.8rem;
+  font-weight: 400;
+  text-align: left;
+  text-decoration: underline;
+}
+
 /* ------------------------------------------------------------- Editor */
 
 .sql-editor {

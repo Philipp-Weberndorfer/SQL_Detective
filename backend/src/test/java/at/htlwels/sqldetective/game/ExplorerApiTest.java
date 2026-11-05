@@ -53,6 +53,35 @@ class ExplorerApiTest {
                 .andExpect(jsonPath("$[*].name", not(hasItem("users"))));
     }
 
+    // ------------------------------------------------- Tabellenschema (SCRUM-46)
+
+    @Test
+    @DisplayName("Das Schema zeigt Spalten mit Datentyp, Primaerschluessel, Pflichtfeld und Fremdschluessel")
+    void describesColumns() throws Exception {
+        mvc.perform(get("/api/cases/case-001/tables/devices").session(TestUsers.loggedIn(mvc)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("devices"))
+                .andExpect(jsonPath("$.columns[0].name").value("id"))
+                .andExpect(jsonPath("$.columns[0].type").value("integer"))
+                .andExpect(jsonPath("$.columns[0].primaryKey").value(true))
+                .andExpect(jsonPath("$.columns[?(@.name == 'inventory_no')].type").value("varchar(20)"))
+                .andExpect(jsonPath("$.columns[?(@.name == 'inventory_no')].notNull").value(true))
+                .andExpect(jsonPath("$.columns[?(@.name == 'model')].notNull").value(false))
+                .andExpect(jsonPath("$.columns[?(@.name == 'assigned_to')].references.table").value("persons"))
+                .andExpect(jsonPath("$.columns[?(@.name == 'assigned_to')].references.column").value("id"));
+    }
+
+    @Test
+    @DisplayName("Nur Tabellen des aktuellen Falls lassen sich abfragen")
+    void onlyTablesOfTheCurrentCaseCanBeDescribed() throws Exception {
+        var session = TestUsers.loggedIn(mvc);
+        for (String table : new String[]{"suspects", "pg_class", "users", "gibt_es_nicht"}) {
+            mvc.perform(get("/api/cases/case-001/tables/" + table).session(session))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.type").value("NOT_FOUND"));
+        }
+    }
+
     @Test
     @DisplayName("Ohne Anmeldung gibt es keine Tabellenliste")
     void requiresLogin() throws Exception {

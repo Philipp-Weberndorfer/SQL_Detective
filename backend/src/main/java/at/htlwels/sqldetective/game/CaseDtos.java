@@ -27,6 +27,17 @@ public final class CaseDtos {
     public record TableSummary(String name, long rowCount) {
     }
 
+    /** Aufbau einer Tabelle (F21) mit Fremdschluesseln (F22). */
+    public record TableDetail(String name, long rowCount, List<Column> columns) {
+    }
+
+    /** @param references Zieltabelle und -spalte eines Fremdschluessels, sonst null */
+    public record Column(String name, String type, boolean primaryKey, boolean notNull, Reference references) {
+    }
+
+    public record Reference(String table, String column) {
+    }
+
     /** Ein Fall mit dem Fortschritt des angemeldeten Spielers. */
     public record CaseDetail(
             String id,

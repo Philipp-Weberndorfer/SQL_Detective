@@ -19,6 +19,7 @@ vi.mock('./api', async (importOriginal) => {
       caseDetail: vi.fn(),
       startCase: vi.fn(),
       tables: vi.fn(),
+      table: vi.fn(),
     },
   };
 });
@@ -203,6 +204,40 @@ describe('Database Explorer', () => {
     expect(mocked.tables).toHaveBeenCalledWith('case-001');
     // die feste Liste aus Sprint 1 ist weg
     expect(screen.queryByText(/Tabellen in Fall #001/)).not.toBeInTheDocument();
+  });
+
+  it('zeigt per Klick den Aufbau einer Tabelle, ein Fremdschlüssel öffnet die Zieltabelle', async () => {
+    mocked.table.mockImplementation(async (_caseId, name) =>
+      name === 'access_logs'
+        ? {
+            name: 'access_logs',
+            rowCount: 120,
+            columns: [
+              { name: 'id', type: 'integer', primaryKey: true, notNull: true, references: null },
+              { name: 'person_id', type: 'integer', primaryKey: false, notNull: true, references: { table: 'persons', column: 'id' } },
+              { name: 'access_time', type: 'timestamp', primaryKey: false, notNull: true, references: null },
+            ],
+          }
+        : {
+            name: 'persons',
+            rowCount: 32,
+            columns: [{ name: 'first_name', type: 'varchar(50)', primaryKey: false, notNull: true, references: null }],
+          },
+    );
+    renderAt('/faelle/case-001');
+
+    await userEvent.click(await screen.findByRole('button', { name: /access_logs/ }));
+
+    const schema = await screen.findByRole('region', { name: 'Aufbau von access_logs' });
+    expect(await within(schema).findByText('access_time')).toBeInTheDocument();
+    expect(within(schema).getAllByText('timestamp')[0]).toBeInTheDocument();
+    expect(within(schema).getByTitle('Primärschlüssel')).toBeInTheDocument();
+
+    await userEvent.click(within(schema).getByRole('button', { name: '→ persons.id' }));
+    expect(await screen.findByRole('region', { name: 'Aufbau von persons' })).toBeInTheDocument();
+    expect(mocked.table).toHaveBeenLastCalledWith('case-001', 'persons');
+    // der Editor ist noch da, der SQL-Text bleibt erhalten
+    expect(screen.getByRole('textbox')).toHaveTextContent('SELECT * FROM persons;');
   });
 });
 

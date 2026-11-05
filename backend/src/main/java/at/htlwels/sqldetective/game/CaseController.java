@@ -5,7 +5,11 @@ import at.htlwels.sqldetective.cases.CaseModel.LoadedCase;
 import at.htlwels.sqldetective.cases.CaseRegistry;
 import at.htlwels.sqldetective.game.CaseDtos.CaseDetail;
 import at.htlwels.sqldetective.game.CaseDtos.CaseSummary;
+import at.htlwels.sqldetective.game.CaseDtos.Column;
+import at.htlwels.sqldetective.game.CaseDtos.Reference;
+import at.htlwels.sqldetective.game.CaseDtos.TableDetail;
 import at.htlwels.sqldetective.game.CaseDtos.TableSummary;
+import at.htlwels.sqldetective.cases.CaseModel.TableInfo;
 import at.htlwels.sqldetective.game.ProgressRepository.CaseProgress;
 import at.htlwels.sqldetective.game.ProgressService.CaseState;
 import io.swagger.v3.oas.annotations.Operation;
@@ -73,6 +77,17 @@ public class CaseController {
         return cases.get(caseId).tables().stream()
                 .map(t -> new TableSummary(t.name(), t.rowCount()))
                 .toList();
+    }
+
+    @GetMapping("/{caseId}/tables/{table}")
+    @Operation(summary = "Spalten einer Tabelle mit Datentyp, Primaerschluessel, Pflichtfeld und Fremdschluessel")
+    public TableDetail table(@PathVariable String caseId, @PathVariable String table) {
+        TableInfo t = cases.get(caseId).table(table).orElseThrow(() -> new TableNotFoundException(table));
+        return new TableDetail(t.name(), t.rowCount(), t.columns().stream()
+                .map(col -> new Column(col.name(), col.type(), col.primaryKey(), col.notNull(),
+                        col.references() == null ? null
+                                : new Reference(col.references().table(), col.references().column())))
+                .toList());
     }
 
     private CaseDetail toDetail(LoadedCase c, CaseState state) {

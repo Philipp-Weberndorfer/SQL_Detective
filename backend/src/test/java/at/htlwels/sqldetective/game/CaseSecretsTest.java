@@ -64,7 +64,8 @@ class CaseSecretsTest {
                 get("/api/cases"),
                 get("/api/cases/" + c.id()),
                 post("/api/cases/" + c.id() + "/start").with(csrf()),
-                get("/api/cases/" + c.id() + "/tables")
+                get("/api/cases/" + c.id() + "/tables"),
+                get("/api/cases/" + c.id() + "/tables/" + c.tables().get(0).name())
         );
     }
 

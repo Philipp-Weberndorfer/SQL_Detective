@@ -3,6 +3,7 @@ import { ApiError, api, type CaseDetail, type QueryResult } from '../../api';
 import { useAuth } from '../../auth';
 import ResultTable from '../ResultTable';
 import SqlEditor from '../SqlEditor';
+import SchemaView from './SchemaView';
 import TableExplorer from './TableExplorer';
 
 const ERROR_TITLES: Record<string, string> = {
@@ -65,7 +66,10 @@ export default function CaseWorkspace({ detail, onShowBriefing }: Props) {
       </div>
 
       <div className="workspace">
-        <TableExplorer caseId={detail.id} selected={table} onSelect={setTable} />
+        <div className="workspace-left">
+          <TableExplorer caseId={detail.id} selected={table} onSelect={setTable} />
+          {table && <SchemaView caseId={detail.id} table={table} onSelect={setTable} />}
+        </div>
 
         <section className="workspace-main" aria-label="SQL-Editor und Ergebnis">
           <SqlEditor value={sql} onChange={setSql} onRun={run} />
