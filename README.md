@@ -91,9 +91,10 @@ Vollständig und ausprobierbar unter http://localhost:8080/swagger-ui.html.
 | POST | `/api/cases/{id}/start` | ja | Fall beginnen (beim ersten Mal AVAILABLE → IN_PROGRESS) |
 | GET | `/api/cases/{id}/tables` | ja | Tabellen des Falls mit Zeilenanzahl (Database Explorer) |
 | GET | `/api/cases/{id}/tables/{name}` | ja | Spalten einer Tabelle mit Typ, Primär- und Fremdschlüsseln |
+| POST | `/api/cases/{id}/evidence/{eid}` | ja | gefundenes Beweisstück sichern (409 `RULE`, wenn noch nicht gefunden) |
 
 Fehler kommen immer als `{"message": "...", "type": "..."}` zurück. `type` ist z. B. `VALIDATION`
-(abgewiesen), `SQL` (PostgreSQL-Fehler), `TIMEOUT`, `UNAUTHORIZED`, `NOT_FOUND` oder `CONFLICT`.
+(abgewiesen), `SQL` (PostgreSQL-Fehler), `TIMEOUT`, `UNAUTHORIZED`, `NOT_FOUND`, `RULE` (Spielregel) oder `CONFLICT`.
 
 Schreibende Aufrufe brauchen das CSRF-Token: Das Backend setzt das Cookie `XSRF-TOKEN`, der Wert muss im
 Header `X-XSRF-TOKEN` mitgeschickt werden. Das Frontend erledigt das automatisch.

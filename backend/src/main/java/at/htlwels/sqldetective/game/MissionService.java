@@ -56,6 +56,6 @@ public class MissionService {
                 .findFirst()
                 .orElse(null);
         progress.setCurrentMission(userId, c.id(), next);
-        return new MissionOutcome(mission.id(), true, next, next == null);
+        return new MissionOutcome(mission.id(), true, next, next == null, EvidenceService.offer(c, mission));
     }
 }

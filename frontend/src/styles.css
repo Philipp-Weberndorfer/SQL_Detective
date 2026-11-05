@@ -565,6 +565,29 @@ input {
   border-radius: 6px;
 }
 
+.evidence-offer {
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--notice-bg);
+  border: 1px dashed var(--notice-border);
+  border-radius: 8px;
+}
+
+.evidence-offer-head {
+  margin: 0;
+  font-weight: 700;
+}
+
+.evidence-text {
+  margin: 0.25rem 0 0.5rem;
+}
+
+.evidence-secured {
+  margin: 0;
+  color: #245b31;
+  font-weight: 600;
+}
+
 .mission-open {
   margin: 0 0 0.75rem;
 }

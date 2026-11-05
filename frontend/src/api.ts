@@ -8,12 +8,22 @@ export interface User {
   role: string;
 }
 
+/** Ein Beweisstück; text ist null, solange es nicht gefunden wurde. */
+export interface EvidenceView {
+  id: string;
+  title: string;
+  text: string | null;
+  state: 'SECURED' | 'FOUND' | 'OPEN';
+}
+
 /** Ergebnis der automatischen Missionsprüfung – verrät bei Fehlversuchen nichts über die Lösung. */
 export interface MissionOutcome {
   missionId: string;
   solved: boolean;
   nextMissionId: string | null;
   allSolved: boolean;
+  /** das Beweisstück, das die gelöste Mission freischaltet */
+  evidence?: EvidenceView | null;
 }
 
 export interface QueryResult {
@@ -147,4 +157,6 @@ export const api = {
   tables: (caseId: string) => request<TableSummary[]>('GET', `/api/cases/${caseId}/tables`),
   table: (caseId: string, table: string) =>
     request<TableDetail>('GET', `/api/cases/${caseId}/tables/${encodeURIComponent(table)}`),
+  secureEvidence: (caseId: string, evidenceId: string) =>
+    request<EvidenceView>('POST', `/api/cases/${caseId}/evidence/${encodeURIComponent(evidenceId)}`),
 };

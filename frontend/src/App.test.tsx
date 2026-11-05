@@ -20,6 +20,7 @@ vi.mock('./api', async (importOriginal) => {
       startCase: vi.fn(),
       tables: vi.fn(),
       table: vi.fn(),
+      secureEvidence: vi.fn(),
     },
   };
 });
@@ -335,6 +336,46 @@ describe('Aktuelle Mission', () => {
     expect(await screen.findByRole('region', { name: 'Aktuelle Mission' })).toHaveTextContent(
       'Alle Missionen sind gelöst.',
     );
+  });
+});
+
+describe('Beweis sichern', () => {
+  beforeEach(() => {
+    mocked.me.mockResolvedValue(user);
+  });
+
+  it('bietet nach einer gelösten Mission das Beweisstück an und sichert es per Klick', async () => {
+    mocked.runQuery.mockResolvedValue({
+      columns: ['x'],
+      rows: [],
+      rowCount: 0,
+      truncated: false,
+      durationMs: 1,
+      mission: {
+        missionId: 'm1',
+        solved: true,
+        nextMissionId: 'm2',
+        allSolved: false,
+        evidence: { id: 'e1', title: 'Gerätezuordnung', text: 'NB-042 ist Max Mustermann zugeordnet.', state: 'FOUND' },
+      },
+    });
+    mocked.secureEvidence.mockResolvedValue({
+      id: 'e1',
+      title: 'Gerätezuordnung',
+      text: 'NB-042 ist Max Mustermann zugeordnet.',
+      state: 'SECURED',
+    });
+    renderAt('/faelle/case-001');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Ausführen' }));
+    const offer = await screen.findByRole('region', { name: 'Neues Beweisstück' });
+    expect(offer).toHaveTextContent('NB-042 ist Max Mustermann zugeordnet.');
+
+    await userEvent.click(within(offer).getByRole('button', { name: 'Als Beweis sichern' }));
+
+    expect(mocked.secureEvidence).toHaveBeenCalledWith('case-001', 'e1');
+    expect(await within(offer).findByText(/Gesichert/)).toBeInTheDocument();
+    expect(within(offer).queryByRole('button', { name: 'Als Beweis sichern' })).not.toBeInTheDocument();
   });
 });
 

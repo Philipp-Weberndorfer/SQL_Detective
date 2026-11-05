@@ -2,6 +2,7 @@ package at.htlwels.sqldetective.api;
 
 import at.htlwels.sqldetective.auth.DuplicateUserException;
 import at.htlwels.sqldetective.cases.CaseNotFoundException;
+import at.htlwels.sqldetective.game.RuleException;
 import at.htlwels.sqldetective.game.TableNotFoundException;
 import at.htlwels.sqldetective.query.InvalidQueryException;
 import at.htlwels.sqldetective.query.QueryTimeoutException;
@@ -51,6 +52,11 @@ public class ApiExceptionHandler {
     @ExceptionHandler({CaseNotFoundException.class, TableNotFoundException.class})
     public ResponseEntity<ApiError> onNotFound(RuntimeException e) {
         return error(HttpStatus.NOT_FOUND, e.getMessage(), "NOT_FOUND");
+    }
+
+    @ExceptionHandler(RuleException.class)
+    public ResponseEntity<ApiError> onRule(RuleException e) {
+        return error(HttpStatus.CONFLICT, e.getMessage(), "RULE");
     }
 
     // --------------------------------------------------------------- Login

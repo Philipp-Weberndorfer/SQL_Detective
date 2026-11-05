@@ -53,6 +53,17 @@ public final class CaseDtos {
     ) {
     }
 
+    /** Zustand eines Beweisstuecks fuer den Spieler. */
+    public enum EvidenceState {
+        SECURED,    // gesichert
+        FOUND,      // Mission geloest, noch nicht gesichert
+        OPEN        // noch nicht gefunden - nur der Titel geht raus, nie der Text
+    }
+
+    /** Ein Beweisstueck; text ist null, solange es nicht gefunden wurde. */
+    public record EvidenceView(String id, String title, String text, EvidenceState state) {
+    }
+
     /** Eine Mission mit Nummer, Frage und Zustand fuer den Spieler (F14, F43) - ohne Loesung. */
     public record MissionView(String id, int number, String title, ProgressService.MissionState state) {
     }

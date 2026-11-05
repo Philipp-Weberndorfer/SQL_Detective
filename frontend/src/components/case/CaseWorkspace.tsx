@@ -3,6 +3,7 @@ import { ApiError, api, type CaseDetail, type MissionOutcome, type QueryResult }
 import { useAuth } from '../../auth';
 import ResultTable from '../ResultTable';
 import SqlEditor from '../SqlEditor';
+import EvidenceOffer from './EvidenceOffer';
 import InvestigationPanel from './InvestigationPanel';
 import MissionBanner from './MissionBanner';
 import MissionFeedback from './MissionFeedback';
@@ -38,6 +39,8 @@ export default function CaseWorkspace({ detail, onShowBriefing, onProgress }: Pr
   const [running, setRunning] = useState(false);
   const [table, setTable] = useState<string | null>(null);
   const [outcome, setOutcome] = useState<MissionOutcome | null>(null);
+  /** zählt hoch, wenn sich die gesicherten Beweise ändern - das Evidence Board lädt dann neu */
+  const [, setBoardVersion] = useState(0);
 
   const run = useCallback(async () => {
     if (running || !sql.trim()) {
@@ -107,6 +110,14 @@ export default function CaseWorkspace({ detail, onShowBriefing, onProgress }: Pr
           )}
 
           {outcome && !error && <MissionFeedback outcome={outcome} />}
+          {outcome?.evidence && !error && (
+            <EvidenceOffer
+              key={outcome.evidence.id}
+              caseId={detail.id}
+              evidence={outcome.evidence}
+              onSecured={() => setBoardVersion((v) => v + 1)}
+            />
+          )}
 
           {result && !error && <ResultTable result={result} />}
         </section>
