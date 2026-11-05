@@ -86,6 +86,7 @@ Vollständig und ausprobierbar unter http://localhost:8080/swagger-ui.html.
 | POST | `/api/auth/logout` | ja | Sitzung beenden |
 | GET | `/api/auth/me` | ja | angemeldeter Benutzer |
 | POST | `/api/queries` | ja | Spielerabfrage gegen die Tabellen eines Falls, Body `{"caseId": "case-001", "sql": "SELECT ..."}` |
+| GET | `/api/cases` | ja | alle Fälle mit Nummer, Titel, Schwierigkeit und Schwerpunkt |
 | GET | `/api/cases/{id}` | ja | ein Fall mit dem Fortschritt des Spielers |
 | POST | `/api/cases/{id}/start` | ja | Fall beginnen (beim ersten Mal AVAILABLE → IN_PROGRESS) |
 

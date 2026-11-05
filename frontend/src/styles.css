@@ -70,6 +70,22 @@ a {
   gap: 0.75rem;
 }
 
+.topbar-nav {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.topbar-nav a:not(.brand) {
+  color: var(--muted);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.topbar-nav a.active {
+  color: var(--accent);
+}
+
 .content {
   max-width: 1200px;
   margin: 0 auto;
@@ -146,6 +162,54 @@ input {
   justify-content: center;
   gap: 1rem;
   margin-top: 1.5rem;
+}
+
+/* ------------------------------------------------------------- Fälle */
+
+.case-list {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.case-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  height: 100%;
+  padding: 1rem 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.case-card:hover,
+.case-card:focus-visible {
+  border-color: var(--accent);
+}
+
+.case-number {
+  font-family: ui-monospace, Consolas, monospace;
+  color: var(--muted);
+}
+
+.case-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.difficulty {
+  color: var(--accent);
+  letter-spacing: 0.1em;
+}
+
+.difficulty-rest {
+  color: var(--border);
 }
 
 /* ------------------------------------------------------------- Editor */

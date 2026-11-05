@@ -16,6 +16,26 @@ export interface QueryResult {
   durationMs: number;
 }
 
+export type CaseStatus = 'LOCKED' | 'AVAILABLE' | 'IN_PROGRESS' | 'SOLVED';
+
+/** Eine Zeile der Fallübersicht. */
+export interface CaseSummary {
+  id: string;
+  number: string;
+  title: string;
+  difficulty: number;
+  focus: string[];
+}
+
+/** Ein Fall mit dem Fortschritt des angemeldeten Spielers. */
+export interface CaseDetail {
+  id: string;
+  title: string;
+  status: CaseStatus;
+  currentMissionId: string | null;
+  solvedMissionIds: string[];
+}
+
 /** Fehler mit der lesbaren Meldung aus dem Backend (ApiError). */
 export class ApiError extends Error {
   constructor(
@@ -78,4 +98,7 @@ export const api = {
     request<User>('POST', '/api/auth/register', { username, email, password }),
   logout: () => request<void>('POST', '/api/auth/logout'),
   runQuery: (caseId: string, sql: string) => request<QueryResult>('POST', '/api/queries', { caseId, sql }),
+  cases: () => request<CaseSummary[]>('GET', '/api/cases'),
+  caseDetail: (caseId: string) => request<CaseDetail>('GET', `/api/cases/${caseId}`),
+  startCase: (caseId: string) => request<CaseDetail>('POST', `/api/cases/${caseId}/start`),
 };

@@ -58,6 +58,7 @@ Endpunkte:
 | POST | `/api/auth/register`, `/api/auth/login` | Konto anlegen, anmelden (offen) |
 | POST | `/api/auth/logout` · GET `/api/auth/me` | abmelden, aktueller Benutzer |
 | POST | `/api/queries` | Spielerabfrage ausführen, Body `{"caseId": "case-001", "sql": "SELECT ..."}` |
+| GET | `/api/cases` | Fallübersicht |
 | GET | `/api/cases/{id}` · POST `/api/cases/{id}/start` | Fall mit Fortschritt des Spielers, Fall beginnen |
 
 Spielfortschritt liegt in der Anwendungsdatenbank (`case_progress`, `mission_progress`), Zugriff über

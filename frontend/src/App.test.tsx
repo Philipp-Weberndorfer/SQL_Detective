@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
-import { ApiError, api, type QueryResult } from './api';
+import { ApiError, api, type CaseSummary, type QueryResult } from './api';
 import App from './App';
 import { AuthProvider } from './auth';
 
@@ -15,6 +15,9 @@ vi.mock('./api', async (importOriginal) => {
       register: vi.fn(),
       logout: vi.fn(),
       runQuery: vi.fn(),
+      cases: vi.fn(),
+      caseDetail: vi.fn(),
+      startCase: vi.fn(),
     },
   };
 });
@@ -39,14 +42,14 @@ beforeEach(() => {
 describe('Anmeldung', () => {
   it('leitet geschützte Seiten ohne Anmeldung auf den Login um', async () => {
     mocked.me.mockRejectedValue(new ApiError('Bitte melde dich zuerst an.', 'UNAUTHORIZED', 401));
-    renderAt('/editor');
+    renderAt('/faelle/case-001');
     expect(await screen.findByRole('heading', { name: 'Anmelden' })).toBeInTheDocument();
   });
 
   it('meldet an und kehrt danach zum Editor zurück', async () => {
     mocked.me.mockRejectedValue(new ApiError('', 'UNAUTHORIZED', 401));
     mocked.login.mockResolvedValue(user);
-    renderAt('/editor');
+    renderAt('/faelle/case-001');
 
     await userEvent.type(await screen.findByLabelText('Benutzername'), 'max');
     await userEvent.type(screen.getByLabelText('Passwort'), 'geheim123');
@@ -77,6 +80,38 @@ describe('Anmeldung', () => {
   });
 });
 
+describe('Fallübersicht', () => {
+  const cases: CaseSummary[] = [
+    { id: 'case-001', number: '001', title: 'Der verschwundene Laptop', difficulty: 1, focus: ['SELECT', 'WHERE'] },
+    { id: 'case-002', number: '002', title: 'Der manipulierte Stundenplan', difficulty: 2, focus: ['JOIN'] },
+  ];
+
+  beforeEach(() => {
+    mocked.me.mockResolvedValue(user);
+    mocked.cases.mockResolvedValue(cases);
+  });
+
+  it('zeigt alle Fälle mit Nummer, Titel, Schwierigkeit und Schwerpunkt', async () => {
+    renderAt('/faelle');
+
+    expect(await screen.findByText('Der verschwundene Laptop')).toBeInTheDocument();
+    expect(screen.getByText('#002')).toBeInTheDocument();
+    expect(screen.getByLabelText('Schwierigkeit 2 von 4')).toBeInTheDocument();
+    expect(screen.getByText('SELECT · WHERE')).toBeInTheDocument();
+  });
+
+  it('öffnet einen Fall per Klick', async () => {
+    renderAt('/faelle');
+    await userEvent.click(await screen.findByText('Der verschwundene Laptop'));
+    expect(await screen.findByRole('heading', { name: 'Ermittlungsdatenbank' })).toBeInTheDocument();
+  });
+
+  it('leitet die alte Editor-Adresse auf die Fallübersicht um', async () => {
+    renderAt('/editor');
+    expect(await screen.findByRole('heading', { name: 'Fälle' })).toBeInTheDocument();
+  });
+});
+
 describe('SQL-Editor', () => {
   const result: QueryResult = {
     columns: ['first_name', 'last_name'],
@@ -92,7 +127,7 @@ describe('SQL-Editor', () => {
 
   it('führt die Abfrage per Button aus und zeigt das Ergebnis als Tabelle', async () => {
     mocked.runQuery.mockResolvedValue(result);
-    renderAt('/editor');
+    renderAt('/faelle/case-001');
 
     await userEvent.click(await screen.findByRole('button', { name: 'Ausführen' }));
 
@@ -104,7 +139,7 @@ describe('SQL-Editor', () => {
   it('zeigt während der Ausführung einen Ladezustand', async () => {
     let finish: (r: QueryResult) => void = () => undefined;
     mocked.runQuery.mockReturnValue(new Promise((resolve) => (finish = resolve)));
-    renderAt('/editor');
+    renderAt('/faelle/case-001');
 
     await userEvent.click(await screen.findByRole('button', { name: 'Ausführen' }));
     expect(screen.getByRole('status', { name: 'Abfrage läuft' })).toBeInTheDocument();
@@ -118,7 +153,7 @@ describe('SQL-Editor', () => {
     mocked.runQuery.mockRejectedValue(
       new ApiError('ERROR: column "gibts_nicht" does not exist', 'SQL', 400),
     );
-    renderAt('/editor');
+    renderAt('/faelle/case-001');
 
     await userEvent.click(await screen.findByRole('button', { name: 'Ausführen' }));
 
@@ -129,7 +164,7 @@ describe('SQL-Editor', () => {
 
   it('führt die Abfrage per Strg+Enter aus', async () => {
     mocked.runQuery.mockResolvedValue(result);
-    renderAt('/editor');
+    renderAt('/faelle/case-001');
 
     const editor = await screen.findByRole('textbox');
     await userEvent.click(editor);
@@ -140,7 +175,7 @@ describe('SQL-Editor', () => {
 
   it('geht bei abgelaufener Sitzung zum Login', async () => {
     mocked.runQuery.mockRejectedValue(new ApiError('Bitte melde dich zuerst an.', 'UNAUTHORIZED', 401));
-    renderAt('/editor');
+    renderAt('/faelle/case-001');
 
     await userEvent.click(await screen.findByRole('button', { name: 'Ausführen' }));
     expect(await screen.findByRole('heading', { name: 'Anmelden' })).toBeInTheDocument();

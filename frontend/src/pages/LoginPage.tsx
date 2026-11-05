@@ -7,7 +7,7 @@ export default function LoginPage() {
   const { user, login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const target = (location.state as { from?: string } | null)?.from ?? '/editor';
+  const target = (location.state as { from?: string } | null)?.from ?? '/faelle';
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');

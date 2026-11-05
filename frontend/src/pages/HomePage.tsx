@@ -13,8 +13,8 @@ export default function HomePage() {
       </p>
       <div className="actions">
         {user ? (
-          <Link to="/editor" className="button">
-            Zum SQL-Editor
+          <Link to="/faelle" className="button">
+            Zu den Fällen
           </Link>
         ) : (
           <>

@@ -13,7 +13,7 @@ const ERROR_TITLES: Record<string, string> = {
 
 const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform);
 
-export default function EditorPage() {
+export default function EditorPage({ caseId }: { caseId: string }) {
   const { sessionExpired } = useAuth();
   const [sql, setSql] = useState('SELECT * FROM persons;');
   const [result, setResult] = useState<QueryResult | null>(null);
@@ -27,8 +27,7 @@ export default function EditorPage() {
     setRunning(true);
     setError(null);
     try {
-      // vorlaeufig fest, bis die Fallauswahl kommt (SCRUM-39)
-      setResult(await api.runQuery('case-001', sql));
+      setResult(await api.runQuery(caseId, sql));
     } catch (err) {
       const apiError = err instanceof ApiError ? err : new ApiError('Unerwarteter Fehler.', 'UNKNOWN', 0);
       if (apiError.status === 401) {
@@ -40,7 +39,7 @@ export default function EditorPage() {
     } finally {
       setRunning(false);
     }
-  }, [running, sql, sessionExpired]);
+  }, [running, sql, caseId, sessionExpired]);
 
   return (
     <div className="editor-page">

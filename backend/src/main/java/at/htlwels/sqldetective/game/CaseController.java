@@ -4,6 +4,7 @@ import at.htlwels.sqldetective.auth.AuthService;
 import at.htlwels.sqldetective.cases.CaseModel.LoadedCase;
 import at.htlwels.sqldetective.cases.CaseRegistry;
 import at.htlwels.sqldetective.game.CaseDtos.CaseDetail;
+import at.htlwels.sqldetective.game.CaseDtos.CaseSummary;
 import at.htlwels.sqldetective.game.ProgressService.CaseState;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.security.core.Authentication;
@@ -12,6 +13,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 /**
  * Faelle aus Sicht des angemeldeten Spielers. Jede Antwort enthaelt nur die
@@ -29,6 +32,19 @@ public class CaseController {
         this.cases = cases;
         this.progress = progress;
         this.users = users;
+    }
+
+    @GetMapping
+    @Operation(summary = "Alle Faelle mit Titel, Schwierigkeit und Schwerpunkt, sortiert nach Fallnummer")
+    public List<CaseSummary> list() {
+        return cases.all().stream()
+                .map(c -> new CaseSummary(
+                        c.id(),
+                        c.id().substring("case-".length()),
+                        c.definition().title(),
+                        c.definition().difficulty(),
+                        c.definition().focus()))
+                .toList();
     }
 
     @GetMapping("/{caseId}")
