@@ -5,6 +5,7 @@ import at.htlwels.sqldetective.cases.CaseModel.LoadedCase;
 import at.htlwels.sqldetective.cases.CaseRegistry;
 import at.htlwels.sqldetective.game.CaseDtos.CaseDetail;
 import at.htlwels.sqldetective.game.CaseDtos.CaseSummary;
+import at.htlwels.sqldetective.game.ProgressRepository.CaseProgress;
 import at.htlwels.sqldetective.game.ProgressService.CaseState;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.security.core.Authentication;
@@ -35,15 +36,17 @@ public class CaseController {
     }
 
     @GetMapping
-    @Operation(summary = "Alle Faelle mit Titel, Schwierigkeit und Schwerpunkt, sortiert nach Fallnummer")
-    public List<CaseSummary> list() {
+    @Operation(summary = "Alle Faelle mit Titel, Schwierigkeit, Schwerpunkt und Status des Spielers, sortiert nach Fallnummer")
+    public List<CaseSummary> list(Authentication auth) {
+        List<CaseProgress> rows = progress.allCases(userId(auth));
         return cases.all().stream()
                 .map(c -> new CaseSummary(
                         c.id(),
                         c.id().substring("case-".length()),
                         c.definition().title(),
                         c.definition().difficulty(),
-                        c.definition().focus()))
+                        c.definition().focus(),
+                        progress.status(rows, c.id())))
                 .toList();
     }
 

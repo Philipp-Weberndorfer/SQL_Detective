@@ -12,13 +12,14 @@ public final class CaseDtos {
     private CaseDtos() {
     }
 
-    /** Eine Zeile der Falluebersicht (F09). */
+    /** Eine Zeile der Falluebersicht (F09) mit dem Status des Spielers (F11). */
     public record CaseSummary(
             String id,
             String number,          // "001" - fuer die Anzeige als #001
             String title,
             int difficulty,
-            List<String> focus
+            List<String> focus,
+            CaseStatus status
     ) {
     }
 

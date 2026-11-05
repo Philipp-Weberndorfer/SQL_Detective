@@ -82,8 +82,17 @@ describe('Anmeldung', () => {
 
 describe('Fallübersicht', () => {
   const cases: CaseSummary[] = [
-    { id: 'case-001', number: '001', title: 'Der verschwundene Laptop', difficulty: 1, focus: ['SELECT', 'WHERE'] },
-    { id: 'case-002', number: '002', title: 'Der manipulierte Stundenplan', difficulty: 2, focus: ['JOIN'] },
+    {
+      id: 'case-001',
+      number: '001',
+      title: 'Der verschwundene Laptop',
+      difficulty: 1,
+      focus: ['SELECT', 'WHERE'],
+      status: 'IN_PROGRESS',
+    },
+    { id: 'case-002', number: '002', title: 'Der manipulierte Stundenplan', difficulty: 2, focus: ['JOIN'], status: 'SOLVED' },
+    { id: 'case-003', number: '003', title: 'Das verschwundene Preisgeld', difficulty: 2, focus: ['GROUP BY'], status: 'AVAILABLE' },
+    { id: 'case-004', number: '004', title: 'Der geheimnisvolle Login', difficulty: 3, focus: ['Subqueries'], status: 'LOCKED' },
   ];
 
   beforeEach(() => {
@@ -96,8 +105,19 @@ describe('Fallübersicht', () => {
 
     expect(await screen.findByText('Der verschwundene Laptop')).toBeInTheDocument();
     expect(screen.getByText('#002')).toBeInTheDocument();
-    expect(screen.getByLabelText('Schwierigkeit 2 von 4')).toBeInTheDocument();
+    expect(screen.getByLabelText('Schwierigkeit 3 von 4')).toBeInTheDocument();
     expect(screen.getByText('SELECT · WHERE')).toBeInTheDocument();
+  });
+
+  it('zeigt den Status jedes Falls als Text, gesperrte Fälle sind nicht anklickbar', async () => {
+    renderAt('/faelle');
+
+    expect(await screen.findByText('In Arbeit')).toBeInTheDocument();
+    expect(screen.getByText('Gelöst')).toBeInTheDocument();
+    expect(screen.getByText('Verfügbar')).toBeInTheDocument();
+    expect(screen.getByText('Gesperrt')).toBeInTheDocument();
+    expect(screen.getByText('Der geheimnisvolle Login').closest('a')).toBeNull();
+    expect(screen.getByText('Das verschwundene Preisgeld').closest('a')).toHaveAttribute('href', '/faelle/case-003');
   });
 
   it('öffnet einen Fall per Klick', async () => {

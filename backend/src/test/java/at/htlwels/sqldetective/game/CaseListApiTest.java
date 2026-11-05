@@ -5,13 +5,18 @@ import at.htlwels.sqldetective.TestUsers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -30,6 +35,13 @@ class CaseListApiTest {
     @Autowired
     MockMvc mvc;
 
+    @Autowired
+    ProgressRepository progress;
+
+    @Autowired
+    @Qualifier("appJdbcTemplate")
+    JdbcTemplate appDb;
+
     @Test
     @DisplayName("Alle geladenen Faelle erscheinen mit Nummer, Titel, Schwierigkeit und Schwerpunkt, sortiert")
     void listsAllCasesSorted() throws Exception {
@@ -43,6 +55,29 @@ class CaseListApiTest {
                 // der Testfall aus einem eigenen Ordner taucht ohne Codeaenderung auf
                 .andExpect(jsonPath("$[1].id").value("case-900"))
                 .andExpect(jsonPath("$[1].title").value("Der Testfall"));
+    }
+
+    @Test
+    @DisplayName("Der Status kommt aus dem Fortschritt des angemeldeten Spielers: verfuegbar, in Arbeit, geloest")
+    void showsTheStatusOfThePlayer() throws Exception {
+        String name = TestUsers.uniqueName();
+        TestUsers.register(mvc, name);
+        MockHttpSession session = TestUsers.login(mvc, name);
+        MockHttpSession other = TestUsers.loggedIn(mvc);
+
+        mvc.perform(get("/api/cases").session(session)).andExpect(jsonPath("$[0].status").value("AVAILABLE"));
+
+        mvc.perform(post("/api/cases/case-001/start").with(csrf()).session(session)).andExpect(status().isOk());
+        mvc.perform(get("/api/cases").session(session))
+                .andExpect(jsonPath("$[0].status").value("IN_PROGRESS"))
+                .andExpect(jsonPath("$[1].status").value("AVAILABLE"));
+
+        long userId = appDb.queryForObject("SELECT id FROM users WHERE username = ?", Long.class, name);
+        progress.markSolved(userId, "case-001");
+        mvc.perform(get("/api/cases").session(session)).andExpect(jsonPath("$[0].status").value("SOLVED"));
+
+        // ein anderer Spieler sieht davon nichts
+        mvc.perform(get("/api/cases").session(other)).andExpect(jsonPath("$[0].status").value("AVAILABLE"));
     }
 
     @Test

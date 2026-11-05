@@ -193,9 +193,41 @@ input {
   border-color: var(--accent);
 }
 
+.case-card.locked {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.case-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .case-number {
   font-family: ui-monospace, Consolas, monospace;
   color: var(--muted);
+}
+
+.status-badge {
+  padding: 0.1rem 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.status-in_progress {
+  border-color: var(--notice-border);
+  background: var(--notice-bg);
+}
+
+.status-solved {
+  border-color: #3f8a4f;
+  background: #e8f4ea;
+  color: #245b31;
 }
 
 .case-title {

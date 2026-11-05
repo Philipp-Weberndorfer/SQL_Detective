@@ -25,6 +25,7 @@ export interface CaseSummary {
   title: string;
   difficulty: number;
   focus: string[];
+  status: CaseStatus;
 }
 
 /** Ein Fall mit dem Fortschritt des angemeldeten Spielers. */

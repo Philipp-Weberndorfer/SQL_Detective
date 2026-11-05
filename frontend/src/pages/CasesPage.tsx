@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ApiError, api, type CaseSummary } from '../api';
 import { useAuth } from '../auth';
+import CaseStatusBadge from '../components/case/CaseStatusBadge';
 import Difficulty from '../components/case/Difficulty';
 
 /** Alle Fälle mit Nummer, Titel, Schwierigkeit und SQL-Schwerpunkt (F09). */
@@ -37,16 +38,32 @@ export default function CasesPage() {
 
       {cases && (
         <ul className="case-list">
-          {cases.map((c) => (
-            <li key={c.id}>
-              <Link to={`/faelle/${c.id}`} className="case-card">
-                <span className="case-number">#{c.number}</span>
+          {cases.map((c) => {
+            const content = (
+              <>
+                <span className="case-card-head">
+                  <span className="case-number">#{c.number}</span>
+                  <CaseStatusBadge status={c.status} />
+                </span>
                 <span className="case-title">{c.title}</span>
                 <Difficulty value={c.difficulty} />
                 <span className="case-focus muted">{c.focus.join(' · ')}</span>
-              </Link>
-            </li>
-          ))}
+              </>
+            );
+            return (
+              <li key={c.id}>
+                {c.status === 'LOCKED' ? (
+                  <div className="case-card locked" aria-disabled="true">
+                    {content}
+                  </div>
+                ) : (
+                  <Link to={`/faelle/${c.id}`} className="case-card">
+                    {content}
+                  </Link>
+                )}
+              </li>
+            );
+          })}
         </ul>
       )}
     </section>
