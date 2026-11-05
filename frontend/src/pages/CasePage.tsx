@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { ApiError, api, type CaseDetail } from '../api';
 import { useAuth } from '../auth';
 import BriefingView from '../components/case/BriefingView';
-import EditorPage from './EditorPage';
+import CaseWorkspace from '../components/case/CaseWorkspace';
 
 /**
  * Ein geöffneter Fall. Beim ersten Öffnen steht das Briefing vor der
@@ -80,5 +80,5 @@ export default function CasePage() {
       />
     );
   }
-  return <EditorPage caseId={detail.id} detail={detail} onShowBriefing={() => setShowBriefing(true)} />;
+  return <CaseWorkspace detail={detail} onShowBriefing={() => setShowBriefing(true)} />;
 }

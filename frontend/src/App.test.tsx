@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { ApiError, api, type CaseDetail, type CaseSummary, type QueryResult } from './api';
@@ -18,6 +18,7 @@ vi.mock('./api', async (importOriginal) => {
       cases: vi.fn(),
       caseDetail: vi.fn(),
       startCase: vi.fn(),
+      tables: vi.fn(),
     },
   };
 });
@@ -50,6 +51,10 @@ function renderAt(path: string) {
 beforeEach(() => {
   vi.resetAllMocks();
   mocked.caseDetail.mockResolvedValue(detail);
+  mocked.tables.mockResolvedValue([
+    { name: 'access_logs', rowCount: 120 },
+    { name: 'persons', rowCount: 32 },
+  ]);
 });
 
 describe('Anmeldung', () => {
@@ -69,7 +74,7 @@ describe('Anmeldung', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Anmelden' }));
 
     expect(mocked.login).toHaveBeenCalledWith('max', 'geheim123');
-    expect(await screen.findByRole('heading', { name: 'Ermittlungsdatenbank' })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Ausführen' })).toBeInTheDocument();
   });
 
   it('zeigt die Fehlermeldung bei falschem Passwort', async () => {
@@ -136,7 +141,7 @@ describe('Fallübersicht', () => {
   it('öffnet einen Fall per Klick', async () => {
     renderAt('/faelle');
     await userEvent.click(await screen.findByText('Der verschwundene Laptop'));
-    expect(await screen.findByRole('heading', { name: 'Ermittlungsdatenbank' })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Ausführen' })).toBeInTheDocument();
   });
 
   it('leitet die alte Editor-Adresse auf die Fallübersicht um', async () => {
@@ -158,17 +163,17 @@ describe('Case Briefing', () => {
     expect(await screen.findByRole('heading', { name: 'Der verschwundene Laptop' })).toBeInTheDocument();
     expect(screen.getByText('CASE #001')).toBeInTheDocument();
     expect(screen.getByText(/Notebook NB-042 noch im Netzwerklabor/)).toBeInTheDocument();
-    expect(screen.queryByRole('heading', { name: 'Ermittlungsdatenbank' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Ausführen' })).not.toBeInTheDocument();
 
     await userEvent.click(screen.getByRole('button', { name: 'Ermittlung starten' }));
 
     expect(mocked.startCase).toHaveBeenCalledWith('case-001');
-    expect(await screen.findByRole('heading', { name: 'Ermittlungsdatenbank' })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Ausführen' })).toBeInTheDocument();
   });
 
   it('geht bei einem begonnenen Fall direkt zum Editor', async () => {
     renderAt('/faelle/case-001');
-    expect(await screen.findByRole('heading', { name: 'Ermittlungsdatenbank' })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Ausführen' })).toBeInTheDocument();
     expect(mocked.startCase).not.toHaveBeenCalled();
   });
 
@@ -179,8 +184,25 @@ describe('Case Briefing', () => {
     expect(screen.getByText(/Notebook NB-042 noch im Netzwerklabor/)).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Zurück zur Ermittlung' }));
 
-    expect(await screen.findByRole('heading', { name: 'Ermittlungsdatenbank' })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Ausführen' })).toBeInTheDocument();
     expect(mocked.startCase).not.toHaveBeenCalled();
+  });
+});
+
+describe('Database Explorer', () => {
+  beforeEach(() => {
+    mocked.me.mockResolvedValue(user);
+  });
+
+  it('listet neben dem Editor die Tabellen des Falls mit Zeilenanzahl', async () => {
+    renderAt('/faelle/case-001');
+
+    const explorer = await screen.findByRole('navigation', { name: 'Tabellen' });
+    expect(await within(explorer).findByText('persons')).toBeInTheDocument();
+    expect(within(explorer).getByText('120 Zeilen')).toBeInTheDocument();
+    expect(mocked.tables).toHaveBeenCalledWith('case-001');
+    // die feste Liste aus Sprint 1 ist weg
+    expect(screen.queryByText(/Tabellen in Fall #001/)).not.toBeInTheDocument();
   });
 });
 

@@ -40,6 +40,12 @@ export interface CaseDetail {
   solvedMissionIds: string[];
 }
 
+/** Eine Tabelle des Falls im Database Explorer. */
+export interface TableSummary {
+  name: string;
+  rowCount: number;
+}
+
 /** Fehler mit der lesbaren Meldung aus dem Backend (ApiError). */
 export class ApiError extends Error {
   constructor(
@@ -105,4 +111,5 @@ export const api = {
   cases: () => request<CaseSummary[]>('GET', '/api/cases'),
   caseDetail: (caseId: string) => request<CaseDetail>('GET', `/api/cases/${caseId}`),
   startCase: (caseId: string) => request<CaseDetail>('POST', `/api/cases/${caseId}/start`),
+  tables: (caseId: string) => request<TableSummary[]>('GET', `/api/cases/${caseId}/tables`),
 };

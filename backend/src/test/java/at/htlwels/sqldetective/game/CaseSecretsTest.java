@@ -63,7 +63,8 @@ class CaseSecretsTest {
         return List.of(
                 get("/api/cases"),
                 get("/api/cases/" + c.id()),
-                post("/api/cases/" + c.id() + "/start").with(csrf())
+                post("/api/cases/" + c.id() + "/start").with(csrf()),
+                get("/api/cases/" + c.id() + "/tables")
         );
     }
 

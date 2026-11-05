@@ -5,6 +5,7 @@ import at.htlwels.sqldetective.cases.CaseModel.LoadedCase;
 import at.htlwels.sqldetective.cases.CaseRegistry;
 import at.htlwels.sqldetective.game.CaseDtos.CaseDetail;
 import at.htlwels.sqldetective.game.CaseDtos.CaseSummary;
+import at.htlwels.sqldetective.game.CaseDtos.TableSummary;
 import at.htlwels.sqldetective.game.ProgressRepository.CaseProgress;
 import at.htlwels.sqldetective.game.ProgressService.CaseState;
 import io.swagger.v3.oas.annotations.Operation;
@@ -62,6 +63,16 @@ public class CaseController {
     public CaseDetail start(@PathVariable String caseId, Authentication auth) {
         LoadedCase c = cases.get(caseId);
         return toDetail(c, progress.start(userId(auth), c));
+    }
+
+    @GetMapping("/{caseId}/tables")
+    @Operation(summary = "Tabellen des Falls mit Zeilenanzahl (Database Explorer)",
+            description = "Nur die Tabellen dieses Falls - keine Systemtabellen, keine anderen Faelle. "
+                    + "Kommt aus den beim Start geladenen Falldaten, nicht aus einer Spielerabfrage.")
+    public List<TableSummary> tables(@PathVariable String caseId) {
+        return cases.get(caseId).tables().stream()
+                .map(t -> new TableSummary(t.name(), t.rowCount()))
+                .toList();
     }
 
     private CaseDetail toDetail(LoadedCase c, CaseState state) {

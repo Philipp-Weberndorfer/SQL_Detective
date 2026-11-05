@@ -23,6 +23,10 @@ public final class CaseDtos {
     ) {
     }
 
+    /** Eine Tabelle des Falls im Database Explorer (F20). */
+    public record TableSummary(String name, long rowCount) {
+    }
+
     /** Ein Fall mit dem Fortschritt des angemeldeten Spielers. */
     public record CaseDetail(
             String id,
