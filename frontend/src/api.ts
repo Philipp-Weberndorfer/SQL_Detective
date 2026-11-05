@@ -77,5 +77,5 @@ export const api = {
   register: (username: string, email: string, password: string) =>
     request<User>('POST', '/api/auth/register', { username, email, password }),
   logout: () => request<void>('POST', '/api/auth/logout'),
-  runQuery: (sql: string) => request<QueryResult>('POST', '/api/queries', { sql }),
+  runQuery: (caseId: string, sql: string) => request<QueryResult>('POST', '/api/queries', { caseId, sql }),
 };

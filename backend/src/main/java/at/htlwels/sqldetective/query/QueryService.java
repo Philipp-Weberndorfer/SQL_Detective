@@ -16,6 +16,7 @@ import java.sql.SQLTimeoutException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * Fuehrt die Abfragen der Spieler aus (F26, F27, F34, F35).
@@ -30,6 +31,8 @@ public class QueryService {
     private static final Logger log = LoggerFactory.getLogger(QueryService.class);
 
     private static final String QUERY_CANCELED = "57014";
+
+    private static final Pattern CASE_SCHEMA = Pattern.compile("case_\\d{3}");
 
     private final DataSource gameDataSource;
     private final SqlValidator validator;
@@ -46,8 +49,14 @@ public class QueryService {
         this.maxRows = maxRows;
     }
 
-    public QueryResult execute(String sql) {
-        validator.validate(sql);
+    /**
+     * @param schema Schema des Falls (case_001) - kommt aus der CaseRegistry, nie vom Spieler
+     */
+    public QueryResult execute(String schema, String sql) {
+        if (!CASE_SCHEMA.matcher(schema).matches()) {
+            throw new IllegalArgumentException("Kein Fall-Schema: " + schema);
+        }
+        validator.validate(sql, schema);
 
         long start = System.nanoTime();
 
@@ -59,6 +68,9 @@ public class QueryService {
             conn.setReadOnly(true);
 
             try (Statement stmt = conn.createStatement()) {
+                // Tabellennamen ohne Schema meinen die Tabellen dieses Falls.
+                // SET LOCAL gilt nur bis zum Rollback unten (AE-10).
+                stmt.execute("SET LOCAL search_path TO " + schema);
                 stmt.setQueryTimeout(timeoutSeconds);   // F34, F113
                 stmt.setMaxRows(maxRows + 1);           // +1, um Abschneiden zu erkennen
 

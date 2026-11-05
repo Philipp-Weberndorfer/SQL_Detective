@@ -1,6 +1,7 @@
 package at.htlwels.sqldetective.api;
 
 import at.htlwels.sqldetective.auth.DuplicateUserException;
+import at.htlwels.sqldetective.cases.CaseNotFoundException;
 import at.htlwels.sqldetective.query.InvalidQueryException;
 import at.htlwels.sqldetective.query.QueryTimeoutException;
 import at.htlwels.sqldetective.query.SqlExecutionException;
@@ -42,6 +43,13 @@ public class ApiExceptionHandler {
     @ExceptionHandler(SqlExecutionException.class)
     public ResponseEntity<ApiError> onSqlError(SqlExecutionException e) {
         return error(HttpStatus.BAD_REQUEST, e.getMessage(), "SQL");
+    }
+
+    // -------------------------------------------------------------- Faelle
+
+    @ExceptionHandler(CaseNotFoundException.class)
+    public ResponseEntity<ApiError> onCaseNotFound(CaseNotFoundException e) {
+        return error(HttpStatus.NOT_FOUND, e.getMessage(), "NOT_FOUND");
     }
 
     // --------------------------------------------------------------- Login

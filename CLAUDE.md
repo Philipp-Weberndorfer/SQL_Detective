@@ -29,7 +29,8 @@ Java 21, Maven. Das Backend liegt unter `backend/`, Paketwurzel `at.htlwels.sqld
 
 ```bash
 docker compose up                     # alles starten (beide Datenbanken, Backend, Frontend auf :5173)
-docker compose down -v                # Datenbanken zurücksetzen (Init-Skripte laufen neu)
+docker compose restart backend        # Fälle aus cases/ neu laden (jeder Start lädt sie neu)
+docker compose down -v                # Datenbanken zurücksetzen (Init-Skripte laufen neu, Konten weg)
 
 mvn test                              # Backend-Tests inkl. Testcontainers - Docker muss laufen
 cd backend && mvn spring-boot:run     # Backend allein starten (Datenbanken müssen laufen)
@@ -38,7 +39,12 @@ cd frontend && npm test               # Frontend-Tests (Vitest)
 ```
 
 Integrationstests nutzen `TestDatabases` (Testcontainers) und laden genau die Skripte aus `db/` –
-Sicherheitstests also immer gegen echtes PostgreSQL, nie gegen H2 oder Mocks.
+Sicherheitstests also immer gegen echtes PostgreSQL, nie gegen H2 oder Mocks. Die Fälle kommen wie im
+Betrieb über den `CaseLoader` dazu, plus der kleine Testfall `case-900` aus `src/test/resources/test-cases/`.
+
+Fälle lädt `cases/CaseRegistry` beim Start: jeder Fall in ein eigenes Schema der Spieldatenbank
+(`case-001` → `case_001`), jedes Mal neu (AE-10). Spielerabfragen laufen mit `SET LOCAL search_path` auf
+das Schema des gewählten Falls.
 
 Beim lokalen Start aus der IDE greift das Backend auf `localhost:5432` und `localhost:5433` zu;
 im Container auf die Dienstnamen `app-db` und `game-db`. Beides steht in `application.yml`
@@ -51,7 +57,7 @@ Endpunkte:
 | GET | `/api/health` | Status und Erreichbarkeit beider Datenbanken (offen) |
 | POST | `/api/auth/register`, `/api/auth/login` | Konto anlegen, anmelden (offen) |
 | POST | `/api/auth/logout` · GET `/api/auth/me` | abmelden, aktueller Benutzer |
-| POST | `/api/queries` | Spielerabfrage ausführen, Body `{"sql": "SELECT ..."}` |
+| POST | `/api/queries` | Spielerabfrage ausführen, Body `{"caseId": "case-001", "sql": "SELECT ..."}` |
 
 Anmeldung über Sitzung + CSRF-Cookie (AE-08). Alles außer den offenen Endpunkten und
 `/swagger-ui.html` verlangt eine Anmeldung. Fehler laufen zentral über `api/ApiExceptionHandler`

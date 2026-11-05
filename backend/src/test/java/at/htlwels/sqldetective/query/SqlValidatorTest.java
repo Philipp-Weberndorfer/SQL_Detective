@@ -130,6 +130,32 @@ class SqlValidatorTest {
         assertThrows(InvalidQueryException.class, () -> validator.validate("-- nur ein Kommentar"));
     }
 
+    // ------------------------------------------- nur der eigene Fall (SCRUM-44)
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "SELECT * FROM persons",
+            "SELECT * FROM case_001.persons",
+            "SELECT * FROM \"case_001\".persons",
+            "SELECT 'case_900.suspects' AS nur_text",
+            "SELECT * FROM persons -- case_900.suspects"
+    })
+    @DisplayName("Tabellen des eigenen Falls sind erlaubt, auch mit Schema-Praefix")
+    void allowsOwnCase(String sql) {
+        assertDoesNotThrow(() -> validator.validate(sql, "case_001"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "SELECT * FROM case_900.suspects",
+            "SELECT * FROM \"case_900\".suspects",
+            "SELECT * FROM persons WHERE id IN (SELECT id FROM Case_900 . suspects)"
+    })
+    @DisplayName("Tabellen eines anderen Falls werden abgewiesen")
+    void blocksOtherCases(String sql) {
+        assertThrows(InvalidQueryException.class, () -> validator.validate(sql, "case_001"));
+    }
+
     // ------------------------------------------- Hilfsmethode neutralise()
 
     @Test

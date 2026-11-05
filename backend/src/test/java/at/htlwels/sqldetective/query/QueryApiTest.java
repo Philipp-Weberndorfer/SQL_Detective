@@ -51,7 +51,11 @@ class QueryApiTest {
     DataSource gameDataSource;
 
     private ResultActions query(String sql) throws Exception {
-        String body = "{\"sql\": " + json(sql) + "}";
+        return query("case-001", sql);
+    }
+
+    private ResultActions query(String caseId, String sql) throws Exception {
+        String body = "{\"caseId\": " + json(caseId) + ", \"sql\": " + json(sql) + "}";
         return mvc.perform(post("/api/queries").with(csrf())
                 .contentType(MediaType.APPLICATION_JSON).content(body));
     }
@@ -121,7 +125,11 @@ class QueryApiTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"{\"sql\": \"\"}", "{\"sql\": \"   \"}", "{}"})
+    @ValueSource(strings = {
+            "{\"caseId\": \"case-001\", \"sql\": \"\"}",
+            "{\"caseId\": \"case-001\", \"sql\": \"   \"}",
+            "{\"caseId\": \"case-001\"}"
+    })
     @WithMockUser
     @DisplayName("Leere Abfrage ergibt 400 mit Meldung, nicht 500")
     void emptyQueryIsBadRequest(String body) throws Exception {
@@ -160,7 +168,7 @@ class QueryApiTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"DROP TABLE persons", "DELETE FROM persons", "CREATE TEMP TABLE x (id INT)"})
+    @ValueSource(strings = {"DROP TABLE case_001.persons", "DELETE FROM case_001.persons", "CREATE TEMP TABLE x (id INT)"})
     @DisplayName("Auch an der Validierung vorbei scheitert ein Schreibbefehl ueber die Spielverbindung")
     void gameConnectionRejectsWritesWithoutValidator(String sql) throws SQLException {
         try (Connection c = gameDataSource.getConnection(); Statement s = c.createStatement()) {
@@ -182,6 +190,54 @@ class QueryApiTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.rows[0][0]").value(not("manipuliert")));
         }
+    }
+
+    // ------------------------------------------------------------- Faelle
+
+    @Test
+    @WithMockUser
+    @DisplayName("Ohne Fall ergibt die Abfrage 400 mit Meldung")
+    void caseIdIsRequired() throws Exception {
+        mvc.perform(post("/api/queries").with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"sql\": \"SELECT 1\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Es ist kein Fall ausgewaehlt."));
+    }
+
+    @Test
+    @WithMockUser
+    @DisplayName("Ein unbekannter Fall ergibt 404")
+    void unknownCaseIsNotFound() throws Exception {
+        query("case-404", "SELECT 1")
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.type").value("NOT_FOUND"));
+    }
+
+    @Test
+    @WithMockUser
+    @DisplayName("Tabellennamen ohne Schema meinen die Tabellen des gewaehlten Falls")
+    void queriesRunAgainstTheChosenCase() throws Exception {
+        query("case-900", "SELECT name FROM suspects WHERE city = 'Linz'")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.rows[0][0]").value("Bernd"));
+        query("case-900", "SELECT * FROM persons")
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.type").value("SQL"));
+        query("case-001", "SELECT COUNT(*) FROM case_001.persons").andExpect(status().isOk());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "SELECT * FROM case_900.suspects",
+            "SELECT * FROM \"case_900\".suspects",
+            "SELECT p.id FROM persons p JOIN CASE_900 . suspects s ON s.id = p.id"
+    })
+    @WithMockUser
+    @DisplayName("Tabellen anderer Faelle werden abgewiesen")
+    void otherCasesAreNotVisible(String sql) throws Exception {
+        query("case-001", sql)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.type").value("VALIDATION"));
     }
 
     // ------------------------------------------------------------- Limits

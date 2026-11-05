@@ -167,7 +167,8 @@ class AuthApiTest {
         login(name, PASSWORD, session).andExpect(status().isOk());
 
         mvc.perform(post("/api/queries").with(csrf()).session(session)
-                        .contentType(MediaType.APPLICATION_JSON).content("{\"sql\": \"SELECT 1 AS eins\"}"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"caseId\": \"case-001\", \"sql\": \"SELECT 1 AS eins\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.columns[0]").value("eins"));
     }

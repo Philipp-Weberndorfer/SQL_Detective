@@ -129,3 +129,23 @@ weder die Rechte noch PostgreSQL-Fehlermeldungen oder `pg_sleep`.
 **Konsequenz:** `mvn test` braucht ein laufendes Docker. Testcontainers muss mindestens Version 1.21.4 haben,
 ältere Versionen scheitern an Docker Engine 29 („Could not find a valid Docker environment").
 **Datum:** 15.10.2026
+
+---
+
+## AE-10 · Ein Schema pro Fall, geladen beim Start
+
+**Entscheidung:** Das Backend lädt beim Start alle Fälle aus `cases/` und legt jeden in einem eigenen Schema der
+Spieldatenbank an (`case-001` → `case_001`) – bei jedem Start neu. Spielerabfragen laufen mit
+`SET LOCAL search_path` auf das Schema des gewählten Falls, der Validator weist Schema-Präfixe anderer Fälle ab.
+**Alternativen:** Init-Skripte des Datenbank-Containers, eine Datenbank pro Fall, ein eigener Lade-Container.
+**Begründung:** Fälle sind Daten (Architekturregel 1, F136): Ein neuer Fall-Ordner muss nach einem Neustart
+spielbar sein, ohne Neukompilieren und ohne `docker compose down -v`. Init-Skripte laufen nur bei leerem
+Volume, eine Datenbank pro Fall bräuchte je einen eigenen Verbindungspool. Schemas trennen die Fälle innerhalb
+einer Datenbank ohne zusätzliche Infrastruktur.
+**Konsequenz:** Zum Laden braucht das Backend den Eigentümer der Spieldatenbank (`GAME_DB_USER`). Diese
+Verbindung gibt es nur im `CaseLoader` während des Starts, sie ist absichtlich keine Bean. Spieler-SQL läuft
+weiter ausschließlich über `game_readonly`, der auf den Fall-Schemas nur `USAGE` und `SELECT` bekommt.
+Die Trennung zwischen den Fällen schützt vor Spoilern, sie ist keine Sicherheitsgrenze: Funktionen, die SQL
+aus einer Zeichenkette ausführen (z. B. `query_to_xml`), erreichen noch Tabellen anderer Fälle. Das gehört zu
+SCRUM-51 (Systemfunktionen einschränken). Lösungen liegen ohnehin nie in der Datenbank.
+**Datum:** 05.11.2026

@@ -1,0 +1,74 @@
+{
+  "_hinweis": "Kleiner Testfall, nur fuer automatisierte Tests. Liegt nicht unter cases/ und ist im Spiel nicht sichtbar.",
+
+  "formatVersion": 1,
+  "id": "case-900",
+  "title": "Der Testfall",
+  "difficulty": 2,
+  "focus": ["SELECT", "ORDER BY"],
+  "requires": [],
+
+  "briefing": "Im Testlabor ist ein Schluessel verschwunden.",
+  "goal": "Finde heraus, wer den Schluessel hat.",
+
+  "missions": [
+    {
+      "id": "m1",
+      "title": "Welche Verdaechtigen wohnen in Wels?",
+      "learningGoals": ["SELECT", "WHERE"],
+      "expectedResult": {
+        "columns": ["name"],
+        "rows": [["Anna"], ["Clara"]],
+        "orderMatters": false
+      },
+      "hints": [
+        { "level": 1, "text": "Wo stehen die Wohnorte?" }
+      ],
+      "solution": "SELECT name FROM suspects WHERE city = 'Wels'",
+      "testQueries": {
+        "correct": [
+          "SELECT s.name FROM suspects s WHERE s.city IN ('Wels') ORDER BY s.name DESC",
+          "SELECT name, city FROM suspects WHERE city LIKE 'W%'"
+        ],
+        "wrong": [
+          "SELECT name FROM suspects"
+        ]
+      },
+      "evidenceOnSuccess": "e1"
+    },
+    {
+      "id": "m2",
+      "title": "Wann wurde Clara gesehen? Sortiere nach der Uhrzeit.",
+      "learningGoals": ["ORDER BY"],
+      "expectedResult": {
+        "columns": ["seen_at", "place"],
+        "rows": [["2026-10-02 18:00:00", "Labor"], ["2026-10-02 19:30:00", "Ausgang"]],
+        "orderMatters": true
+      },
+      "hints": [],
+      "solution": "SELECT seen_at, place FROM sightings WHERE suspect_id = 3 ORDER BY seen_at",
+      "testQueries": {
+        "correct": [
+          "SELECT si.place, si.seen_at FROM sightings si JOIN suspects s ON s.id = si.suspect_id WHERE s.name = 'Clara' ORDER BY si.seen_at ASC"
+        ],
+        "wrong": [
+          "SELECT seen_at, place FROM sightings WHERE suspect_id = 3 ORDER BY seen_at DESC"
+        ]
+      },
+      "evidenceOnSuccess": "e2"
+    }
+  ],
+
+  "evidence": [
+    { "id": "e1", "title": "Wohnorte", "text": "Anna und Clara wohnen in Wels." },
+    { "id": "e2", "title": "Sichtungen", "text": "Clara war um 18:00 im Labor und ging um 19:30." }
+  ],
+
+  "conclusion": {
+    "question": "Wer hat den Schluessel?",
+    "options": ["Anna", "Bernd", "Clara"],
+    "correct": "Clara",
+    "requiredEvidence": ["e2"],
+    "maxEvidence": 1
+  }
+}

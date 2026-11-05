@@ -1,6 +1,7 @@
 {
-  "_hinweis": "Geruest. Die Missionen 2 bis 5, die Beweise und das Finale entstehen in Sprint 2 (Jira: Fall 001 Der verschwundene Laptop). Format und Regeln: docs/architektur/fall-format.md",
+  "_hinweis": "Zwischenstand: erst Mission 1. Die Missionen 2 bis 5, die Beweise und das Finale folgen mit SCRUM-98. Format und Regeln: docs/architektur/fall-format.md",
 
+  "formatVersion": 1,
   "id": "case-001",
   "title": "Der verschwundene Laptop",
   "difficulty": 1,
@@ -30,13 +31,16 @@
       ],
 
       "solution": "SELECT p.first_name, p.last_name FROM devices d JOIN persons p ON p.id = d.assigned_to WHERE d.inventory_no = 'NB-042';",
+      "testQueries": {
+        "correct": [
+          "SELECT first_name, last_name FROM persons WHERE id = (SELECT assigned_to FROM devices WHERE inventory_no = 'NB-042')"
+        ],
+        "wrong": [
+          "SELECT first_name, last_name FROM persons"
+        ]
+      },
       "evidenceOnSuccess": "e1"
-    },
-
-    { "_todo": "m2 - Wer hat sich zuletzt auf NB-042 angemeldet? (ORDER BY, LIMIT)" },
-    { "_todo": "m3 - Wer befand sich nach 16:30 Uhr noch im Gebaeude? (JOIN, WHERE)" },
-    { "_todo": "m4 - Welche dieser Personen hatten Zugang zum Labor? (JOIN, mehrere Bedingungen)" },
-    { "_todo": "m5 - Welche Geraete dieser Personen waren mit dem WLAN verbunden? (mehrere JOINs)" }
+    }
   ],
 
   "evidence": [
@@ -48,9 +52,10 @@
   ],
 
   "conclusion": {
-    "_todo": "Schlussfolgerung und erforderliche Beweise in Sprint 2 ergaenzen",
-    "question": "Wer hat das Notebook zuletzt verwendet?",
-    "options": [],
-    "requiredEvidence": []
+    "question": "Wem gehoert das Notebook?",
+    "options": ["Max Mustermann", "Anna Berger"],
+    "correct": "Max Mustermann",
+    "requiredEvidence": ["e1"],
+    "maxEvidence": 1
   }
 }

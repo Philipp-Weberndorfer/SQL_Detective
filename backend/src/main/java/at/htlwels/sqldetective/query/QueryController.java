@@ -1,5 +1,6 @@
 package at.htlwels.sqldetective.query;
 
+import at.htlwels.sqldetective.cases.CaseRegistry;
 import at.htlwels.sqldetective.query.QueryDtos.QueryRequest;
 import at.htlwels.sqldetective.query.QueryDtos.QueryResult;
 import io.swagger.v3.oas.annotations.Operation;
@@ -23,20 +24,23 @@ import org.springframework.web.bind.annotation.RestController;
 public class QueryController {
 
     private final QueryService queryService;
+    private final CaseRegistry cases;
 
-    public QueryController(QueryService queryService) {
+    public QueryController(QueryService queryService, CaseRegistry cases) {
         this.queryService = queryService;
+        this.cases = cases;
     }
 
     @PostMapping
-    @Operation(summary = "SQL-Abfrage gegen die Ermittlungsdatenbank ausfuehren",
-            description = "Nur eine einzelne lesende Abfrage (SELECT oder WITH). Hoechstens 500 Zeilen, "
-                    + "Abbruch nach dem konfigurierten Zeitlimit.")
+    @Operation(summary = "SQL-Abfrage gegen die Ermittlungsdatenbank eines Falls ausfuehren",
+            description = "Nur eine einzelne lesende Abfrage (SELECT oder WITH) auf die Tabellen des Falls. "
+                    + "Hoechstens 500 Zeilen, Abbruch nach dem konfigurierten Zeitlimit.")
     @ApiResponse(responseCode = "200", description = "Spalten und Zeilen; ein leeres Ergebnis ist kein Fehler")
     @ApiResponse(responseCode = "400", description = "Abfrage abgewiesen (VALIDATION) oder von PostgreSQL abgelehnt (SQL)")
     @ApiResponse(responseCode = "401", description = "Nicht angemeldet")
+    @ApiResponse(responseCode = "404", description = "Unbekannter Fall")
     @ApiResponse(responseCode = "408", description = "Zeitlimit ueberschritten (TIMEOUT)")
     public QueryResult execute(@Valid @RequestBody QueryRequest request) {
-        return queryService.execute(request.sql());
+        return queryService.execute(cases.get(request.caseId()).schema(), request.sql());
     }
 }

@@ -27,7 +27,8 @@ export default function EditorPage() {
     setRunning(true);
     setError(null);
     try {
-      setResult(await api.runQuery(sql));
+      // vorlaeufig fest, bis die Fallauswahl kommt (SCRUM-39)
+      setResult(await api.runQuery('case-001', sql));
     } catch (err) {
       const apiError = err instanceof ApiError ? err : new ApiError('Unerwarteter Fehler.', 'UNKNOWN', 0);
       if (apiError.status === 401) {

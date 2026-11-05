@@ -13,8 +13,11 @@ public final class QueryDtos {
     private QueryDtos() {
     }
 
-    /** Was der Spieler schickt. */
+    /** Was der Spieler schickt. Die Abfrage laeuft gegen die Tabellen dieses Falls. */
     public record QueryRequest(
+            @NotBlank(message = "Es ist kein Fall ausgewaehlt.")
+            String caseId,
+
             @NotBlank(message = "Die Abfrage darf nicht leer sein.")
             @Size(max = 10_000, message = "Die Abfrage ist zu lang.")
             String sql

@@ -96,7 +96,7 @@ describe('SQL-Editor', () => {
 
     await userEvent.click(await screen.findByRole('button', { name: 'Ausführen' }));
 
-    expect(mocked.runQuery).toHaveBeenCalledWith('SELECT * FROM persons;');
+    expect(mocked.runQuery).toHaveBeenCalledWith('case-001', 'SELECT * FROM persons;');
     expect(await screen.findByRole('columnheader', { name: 'first_name' })).toBeInTheDocument();
     expect(screen.getByRole('cell', { name: 'Mustermann' })).toBeInTheDocument();
   });

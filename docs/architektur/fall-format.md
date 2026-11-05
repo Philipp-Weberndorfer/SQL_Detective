@@ -14,11 +14,15 @@ cases/
    └─ seed.sql       die Ermittlungsdaten
 ```
 
+Der Ordnername ist die Fall-ID (`case-` und drei Ziffern). In `schema.sql` und `seed.sql` stehen die Tabellen
+**ohne Schemaangabe** – der Loader legt sie im Schema des Falls an (`case-001` → `case_001`).
+
 ## case.json
 
 ```jsonc
 {
-  "id": "case-001",
+  "formatVersion": 1,                 // Pflicht; andere Versionen werden abgewiesen
+  "id": "case-001",                   // muss dem Ordnernamen entsprechen
   "title": "Der verschwundene Laptop",
   "difficulty": 1,                    // 1 bis 4 Sterne
   "focus": ["SELECT", "WHERE"],       // trainierte SQL-Themen
@@ -47,6 +51,10 @@ cases/
       ],
 
       "solution": "SELECT ...",       // NIEMALS an Spieler oder KI ausliefern
+      "testQueries": {                // NIEMALS ausliefern - nur für die Lösbarkeitstests
+        "correct": ["SELECT ..."],    // weitere richtige Lösungswege
+        "wrong": ["SELECT ..."]       // typische falsche Abfrage
+      },
       "evidenceOnSuccess": "e1"
     }
   ],
@@ -59,16 +67,29 @@ cases/
     "question": "Wer hat das Notebook zuletzt verwendet?",
     "options": ["..."],
     "correct": "...",                 // NIEMALS ausliefern
-    "requiredEvidence": ["e1", "e4"]  // Beweise, die der Spieler vorlegen muss
+    "requiredEvidence": ["e1", "e4"], // Beweise, die der Spieler vorlegen muss - NIEMALS ausliefern
+    "maxEvidence": 2                  // wie viele Beweise höchstens vorgelegt werden dürfen
   }
 }
 ```
 
+Felder, die mit `_` beginnen (z. B. `_hinweis`), sind Kommentare und werden ignoriert.
+
+## Laden
+
+Beim Start prüft das Backend jeden Ordner unter `cases/` und legt den Fall dann in einem eigenen Schema der
+Spieldatenbank neu an (AE-10). Das passiert bei **jedem** Start – nach einer Änderung an einem Fall oder für
+einen neuen Fall reicht `docker compose restart backend`.
+
+Ein fehlerhafter Fall verhindert den Start nicht: Er wird übersprungen, und im Log steht, welcher Fall und
+welches Feld das Problem ist, z. B. `case-002: Feld missions[1].solution fehlt oder ist leer`.
+
 ## Drei Regeln
 
-**1. Lösungen verlassen den Server nie.** `expectedResult`, `solution` und `conclusion.correct` werden
-ausschließlich serverseitig zum Prüfen verwendet. Kein API-Endpunkt und kein MCP-Tool gibt sie heraus –
-auch nicht indirekt, etwa indem der KI-Detektiv den ganzen Falldatensatz bekommt (F75, F118).
+**1. Lösungen verlassen den Server nie.** `expectedResult`, `solution`, `testQueries`, `conclusion.correct` und
+`conclusion.requiredEvidence` werden ausschließlich serverseitig zum Prüfen verwendet. Kein API-Endpunkt und
+kein MCP-Tool gibt sie heraus – auch nicht indirekt, etwa indem der KI-Detektiv den ganzen Falldatensatz
+bekommt (F75, F118). Dasselbe gilt für den Text noch nicht gefundener Beweise.
 
 **2. Geprüft wird das Ergebnis, nicht die Abfrage.** Zwei verschieden formulierte Abfragen mit demselben
 Ergebnis sind beide richtig (F45). Spaltenreihenfolge und Groß-/Kleinschreibung von Aliasnamen sind egal.
@@ -85,4 +106,5 @@ Für jeden Fall läuft automatisiert (F128, F129):
 
 - Ist der Fall überhaupt lösbar?
 - Liefert die hinterlegte Referenzabfrage genau `expectedResult`?
-- Gibt es je Mission mindestens zwei unterschiedliche korrekte Lösungswege im Test?
+- Gibt es je Mission mindestens zwei unterschiedliche korrekte Lösungswege im Test (`solution` plus
+  `testQueries.correct`), und wird die falsche Abfrage als falsch erkannt?
