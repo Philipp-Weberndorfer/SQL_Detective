@@ -16,8 +16,10 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -91,6 +93,33 @@ class EvidenceApiTest {
 
         solveMission1(session);
         secure(session, "e2").andExpect(status().isConflict());
+    }
+
+    // ----------------------------------------------- Evidence Board (SCRUM-56)
+
+    @Test
+    @DisplayName("Das Board zeigt offene Beweise nur mit Titel, gefundene und gesicherte mit Text")
+    void boardShowsStates() throws Exception {
+        MockHttpSession session = TestUsers.loggedIn(mvc);
+
+        mvc.perform(get("/api/cases/case-900/evidence").session(session))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.total").value(2))
+                .andExpect(jsonPath("$.secured").value(0))
+                .andExpect(jsonPath("$.items[0].title").value("Wohnorte"))
+                .andExpect(jsonPath("$.items[0].state").value("OPEN"))
+                .andExpect(jsonPath("$.items[0].text").value(nullValue()));
+
+        solveMission1(session);
+        mvc.perform(get("/api/cases/case-900/evidence").session(session))
+                .andExpect(jsonPath("$.items[0].state").value("FOUND"))
+                .andExpect(jsonPath("$.items[0].text").value("Anna und Clara wohnen in Wels."))
+                .andExpect(jsonPath("$.items[1].state").value("OPEN"));
+
+        secure(session, "e1");
+        mvc.perform(get("/api/cases/case-900/evidence").session(session))
+                .andExpect(jsonPath("$.items[0].state").value("SECURED"))
+                .andExpect(jsonPath("$.secured").value(1));
     }
 
     @Test

@@ -21,6 +21,7 @@ vi.mock('./api', async (importOriginal) => {
       tables: vi.fn(),
       table: vi.fn(),
       secureEvidence: vi.fn(),
+      evidence: vi.fn(),
     },
   };
 });
@@ -73,6 +74,11 @@ beforeEach(() => {
     { name: 'access_logs', rowCount: 120 },
     { name: 'persons', rowCount: 32 },
   ]);
+  mocked.evidence.mockResolvedValue({
+    items: [{ id: 'e1', title: 'Gerätezuordnung', text: null, state: 'OPEN' }],
+    secured: 0,
+    total: 1,
+  });
 });
 
 describe('Anmeldung', () => {
@@ -376,6 +382,53 @@ describe('Beweis sichern', () => {
     expect(mocked.secureEvidence).toHaveBeenCalledWith('case-001', 'e1');
     expect(await within(offer).findByText(/Gesichert/)).toBeInTheDocument();
     expect(within(offer).queryByRole('button', { name: 'Als Beweis sichern' })).not.toBeInTheDocument();
+  });
+});
+
+describe('Evidence Board', () => {
+  beforeEach(() => {
+    mocked.me.mockResolvedValue(user);
+  });
+
+  it('zeigt gesicherte Beweise mit Text, offene nur als Platzhalter, und den Stand als Zahl', async () => {
+    mocked.evidence.mockResolvedValue({
+      items: [
+        { id: 'e1', title: 'Gerätezuordnung', text: 'NB-042 ist Max Mustermann zugeordnet.', state: 'SECURED' },
+        { id: 'e2', title: 'Letzte Anmeldung', text: null, state: 'OPEN' },
+      ],
+      secured: 1,
+      total: 2,
+    });
+    renderAt('/faelle/case-001');
+
+    const board = await screen.findByRole('region', { name: 'Evidence Board' });
+    expect(await within(board).findByText('1 von 2 Beweisen gesichert')).toBeInTheDocument();
+    expect(board).toHaveTextContent('NB-042 ist Max Mustermann zugeordnet.');
+    expect(within(board).getByLabelText('gesichert')).toBeInTheDocument();
+    expect(within(board).getByLabelText('noch offen')).toBeInTheDocument();
+    expect(board).toHaveTextContent('Letzte Anmeldung');
+  });
+
+  it('sichert einen gefundenen Beweis direkt auf dem Board und lädt neu', async () => {
+    mocked.evidence
+      .mockResolvedValueOnce({
+        items: [{ id: 'e1', title: 'Gerätezuordnung', text: 'NB-042 ist Max Mustermann zugeordnet.', state: 'FOUND' }],
+        secured: 0,
+        total: 1,
+      })
+      .mockResolvedValueOnce({
+        items: [{ id: 'e1', title: 'Gerätezuordnung', text: 'NB-042 ist Max Mustermann zugeordnet.', state: 'SECURED' }],
+        secured: 1,
+        total: 1,
+      });
+    mocked.secureEvidence.mockResolvedValue({ id: 'e1', title: 'Gerätezuordnung', text: '', state: 'SECURED' });
+    renderAt('/faelle/case-001');
+
+    const board = await screen.findByRole('region', { name: 'Evidence Board' });
+    await userEvent.click(await within(board).findByRole('button', { name: 'Sichern' }));
+
+    expect(mocked.secureEvidence).toHaveBeenCalledWith('case-001', 'e1');
+    expect(await within(board).findByText('1 von 1 Beweisen gesichert')).toBeInTheDocument();
   });
 });
 

@@ -16,6 +16,13 @@ export interface EvidenceView {
   state: 'SECURED' | 'FOUND' | 'OPEN';
 }
 
+/** Das Evidence Board: alle Beweise des Falls und wie viele gesichert sind. */
+export interface EvidenceBoardData {
+  items: EvidenceView[];
+  secured: number;
+  total: number;
+}
+
 /** Ergebnis der automatischen Missionsprüfung – verrät bei Fehlversuchen nichts über die Lösung. */
 export interface MissionOutcome {
   missionId: string;
@@ -157,6 +164,7 @@ export const api = {
   tables: (caseId: string) => request<TableSummary[]>('GET', `/api/cases/${caseId}/tables`),
   table: (caseId: string, table: string) =>
     request<TableDetail>('GET', `/api/cases/${caseId}/tables/${encodeURIComponent(table)}`),
+  evidence: (caseId: string) => request<EvidenceBoardData>('GET', `/api/cases/${caseId}/evidence`),
   secureEvidence: (caseId: string, evidenceId: string) =>
     request<EvidenceView>('POST', `/api/cases/${caseId}/evidence/${encodeURIComponent(evidenceId)}`),
 };

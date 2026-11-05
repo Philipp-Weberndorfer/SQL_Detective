@@ -410,6 +410,63 @@ input {
   text-align: center;
 }
 
+.evidence-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.9rem;
+}
+
+.evidence-item {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid #efece6;
+}
+
+.evidence-item.open {
+  color: var(--muted);
+}
+
+.evidence-item .evidence-text {
+  margin: 0.15rem 0 0;
+}
+
+.evidence-state {
+  flex: 0 0 1.2rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.evidence-item.secured .evidence-state {
+  color: #3f8a4f;
+}
+
+.evidence-item.found .evidence-state {
+  color: var(--notice-border);
+}
+
+.evidence-body {
+  min-width: 0;
+}
+
+.evidence-select {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.evidence-select input {
+  width: auto;
+  margin: 0;
+}
+
+button.small {
+  margin-top: 0.3rem;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.85rem;
+}
+
 .workspace-left {
   display: flex;
   flex-direction: column;

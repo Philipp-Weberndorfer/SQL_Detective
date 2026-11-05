@@ -3,6 +3,7 @@ import { ApiError, api, type CaseDetail, type MissionOutcome, type QueryResult }
 import { useAuth } from '../../auth';
 import ResultTable from '../ResultTable';
 import SqlEditor from '../SqlEditor';
+import EvidenceBoard from './EvidenceBoard';
 import EvidenceOffer from './EvidenceOffer';
 import InvestigationPanel from './InvestigationPanel';
 import MissionBanner from './MissionBanner';
@@ -40,7 +41,8 @@ export default function CaseWorkspace({ detail, onShowBriefing, onProgress }: Pr
   const [table, setTable] = useState<string | null>(null);
   const [outcome, setOutcome] = useState<MissionOutcome | null>(null);
   /** zählt hoch, wenn sich die gesicherten Beweise ändern - das Evidence Board lädt dann neu */
-  const [, setBoardVersion] = useState(0);
+  const [boardVersion, setBoardVersion] = useState(0);
+  const bumpBoard = useCallback(() => setBoardVersion((v) => v + 1), []);
 
   const run = useCallback(async () => {
     if (running || !sql.trim()) {
@@ -55,6 +57,7 @@ export default function CaseWorkspace({ detail, onShowBriefing, onProgress }: Pr
       setOutcome(r.mission ?? null);
       if (r.mission?.solved) {
         onProgress();
+        bumpBoard();
       }
     } catch (err) {
       const apiError = err instanceof ApiError ? err : new ApiError('Unerwarteter Fehler.', 'UNKNOWN', 0);
@@ -67,7 +70,7 @@ export default function CaseWorkspace({ detail, onShowBriefing, onProgress }: Pr
     } finally {
       setRunning(false);
     }
-  }, [running, sql, detail.id, sessionExpired, onProgress]);
+  }, [running, sql, detail.id, sessionExpired, onProgress, bumpBoard]);
 
   return (
     <div className="workspace-page">
@@ -115,7 +118,7 @@ export default function CaseWorkspace({ detail, onShowBriefing, onProgress }: Pr
               key={outcome.evidence.id}
               caseId={detail.id}
               evidence={outcome.evidence}
-              onSecured={() => setBoardVersion((v) => v + 1)}
+              onSecured={bumpBoard}
             />
           )}
 
@@ -124,6 +127,7 @@ export default function CaseWorkspace({ detail, onShowBriefing, onProgress }: Pr
 
         <aside className="workspace-side">
           <InvestigationPanel goal={detail.goal} missions={detail.missions} />
+          <EvidenceBoard caseId={detail.id} version={boardVersion} onSecured={bumpBoard} />
         </aside>
       </div>
     </div>

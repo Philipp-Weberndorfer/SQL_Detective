@@ -2,14 +2,19 @@ package at.htlwels.sqldetective.game;
 
 import at.htlwels.sqldetective.auth.AuthService;
 import at.htlwels.sqldetective.cases.CaseRegistry;
+import at.htlwels.sqldetective.game.CaseDtos.EvidenceBoard;
+import at.htlwels.sqldetective.game.CaseDtos.EvidenceState;
 import at.htlwels.sqldetective.game.CaseDtos.EvidenceView;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 /** Beweisstuecke eines Falls (F39-F41). */
 @RestController
@@ -24,6 +29,14 @@ public class EvidenceController {
         this.cases = cases;
         this.evidence = evidence;
         this.users = users;
+    }
+
+    @GetMapping
+    @Operation(summary = "Evidence Board: gesicherte und gefundene Beweise mit Text, offene nur mit Titel")
+    public EvidenceBoard board(@PathVariable String caseId, Authentication auth) {
+        List<EvidenceView> items = evidence.board(userId(auth), cases.get(caseId));
+        long secured = items.stream().filter(e -> e.state() == EvidenceState.SECURED).count();
+        return new EvidenceBoard(items, secured, items.size());
     }
 
     @PostMapping("/{evidenceId}")

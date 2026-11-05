@@ -64,6 +64,10 @@ public final class CaseDtos {
     public record EvidenceView(String id, String title, String text, EvidenceState state) {
     }
 
+    /** Das Evidence Board (F41): alle Beweise des Falls und wie viele gesichert sind. */
+    public record EvidenceBoard(List<EvidenceView> items, long secured, int total) {
+    }
+
     /** Eine Mission mit Nummer, Frage und Zustand fuer den Spieler (F14, F43) - ohne Loesung. */
     public record MissionView(String id, int number, String title, ProgressService.MissionState state) {
     }

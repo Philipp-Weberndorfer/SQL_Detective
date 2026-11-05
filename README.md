@@ -91,6 +91,7 @@ Vollständig und ausprobierbar unter http://localhost:8080/swagger-ui.html.
 | POST | `/api/cases/{id}/start` | ja | Fall beginnen (beim ersten Mal AVAILABLE → IN_PROGRESS) |
 | GET | `/api/cases/{id}/tables` | ja | Tabellen des Falls mit Zeilenanzahl (Database Explorer) |
 | GET | `/api/cases/{id}/tables/{name}` | ja | Spalten einer Tabelle mit Typ, Primär- und Fremdschlüsseln |
+| GET | `/api/cases/{id}/evidence` | ja | Evidence Board: gesicherte und gefundene Beweise mit Text, offene nur mit Titel |
 | POST | `/api/cases/{id}/evidence/{eid}` | ja | gefundenes Beweisstück sichern (409 `RULE`, wenn noch nicht gefunden) |
 
 Fehler kommen immer als `{"message": "...", "type": "..."}` zurück. `type` ist z. B. `VALIDATION`

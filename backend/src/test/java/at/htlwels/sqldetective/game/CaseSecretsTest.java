@@ -66,6 +66,7 @@ class CaseSecretsTest {
                 post("/api/cases/" + c.id() + "/start").with(csrf()),
                 get("/api/cases/" + c.id() + "/tables"),
                 get("/api/cases/" + c.id() + "/tables/" + c.tables().get(0).name()),
+                get("/api/cases/" + c.id() + "/evidence"),
                 // ein frischer Spieler versucht, einen Beweis zu sichern - 409, ohne Text
                 post("/api/cases/" + c.id() + "/evidence/" + c.definition().evidence().get(0).id()).with(csrf())
         );
