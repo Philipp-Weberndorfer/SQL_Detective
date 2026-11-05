@@ -99,6 +99,7 @@ public class CaseController {
                 c.definition().title(),
                 c.definition().difficulty(),
                 c.definition().briefing(),
+                c.definition().goal(),
                 state.status(),
                 state.currentMissionId(),
                 c.definition().missions().stream()

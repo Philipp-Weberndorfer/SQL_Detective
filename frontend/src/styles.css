@@ -361,6 +361,55 @@ input {
   white-space: nowrap;
 }
 
+.workspace-side {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.goal {
+  margin: 0 0 0.25rem;
+  font-weight: 600;
+}
+
+.progress-count {
+  margin: 0 0 0.5rem;
+  font-size: 0.85rem;
+}
+
+.mission-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.9rem;
+}
+
+.mission-item {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.35rem 0.4rem;
+  border-radius: 6px;
+}
+
+.mission-item.current {
+  background: #f6e9e9;
+  font-weight: 600;
+}
+
+.mission-item.locked {
+  color: var(--muted);
+}
+
+.mission-item.solved .mission-state {
+  color: #3f8a4f;
+}
+
+.mission-state {
+  flex: 0 0 1.2rem;
+  text-align: center;
+}
+
 .workspace-left {
   display: flex;
   flex-direction: column;

@@ -34,6 +34,7 @@ const detail: CaseDetail = {
   title: 'Der verschwundene Laptop',
   difficulty: 1,
   briefing: 'Freitag um 16:30 Uhr befand sich Notebook NB-042 noch im Netzwerklabor.',
+  goal: 'Rekonstruiere, was zwischen Freitag 16:30 Uhr und Montag 07:15 Uhr passiert ist.',
   status: 'IN_PROGRESS',
   currentMissionId: 'm1',
   solvedMissionIds: [],
@@ -334,6 +335,40 @@ describe('Aktuelle Mission', () => {
     expect(await screen.findByRole('region', { name: 'Aktuelle Mission' })).toHaveTextContent(
       'Alle Missionen sind gelöst.',
     );
+  });
+});
+
+describe('Ermittlungsziel und Teilziele', () => {
+  beforeEach(() => {
+    mocked.me.mockResolvedValue(user);
+  });
+
+  it('zeigt Ziel und alle Fragen mit ihrem Zustand und aktualisiert sich nach dem Lösen', async () => {
+    mocked.caseDetail.mockResolvedValueOnce(detail).mockResolvedValueOnce(afterMission1);
+    mocked.runQuery.mockResolvedValue({
+      columns: ['x'],
+      rows: [],
+      rowCount: 0,
+      truncated: false,
+      durationMs: 1,
+      mission: { missionId: 'm1', solved: true, nextMissionId: 'm2', allSolved: false },
+    });
+    renderAt('/faelle/case-001');
+
+    const panel = await screen.findByRole('region', { name: 'Ermittlung' });
+    expect(panel).toHaveTextContent('Rekonstruiere, was zwischen Freitag 16:30 Uhr');
+    expect(panel).toHaveTextContent('0 von 2 gelöst');
+    expect(within(panel).getByLabelText('aktuell')).toBeInTheDocument();
+    expect(within(panel).getByLabelText('gesperrt')).toBeInTheDocument();
+    // auch gesperrte Fragen sind sichtbar
+    expect(panel).toHaveTextContent('Wer hat sich zuletzt auf NB-042 angemeldet?');
+
+    await userEvent.click(screen.getByRole('button', { name: 'Ausführen' }));
+
+    await waitFor(() => expect(screen.getByRole('region', { name: 'Ermittlung' })).toHaveTextContent('1 von 2 gelöst'));
+    const updated = screen.getByRole('region', { name: 'Ermittlung' });
+    expect(within(updated).getByLabelText('gelöst')).toBeInTheDocument();
+    expect(within(updated).getByLabelText('aktuell')).toBeInTheDocument();
   });
 });
 

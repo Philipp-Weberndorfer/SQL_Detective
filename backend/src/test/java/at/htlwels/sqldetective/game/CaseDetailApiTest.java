@@ -42,7 +42,9 @@ class CaseDetailApiTest {
                 .andExpect(jsonPath("$.number").value("900"))
                 .andExpect(jsonPath("$.title").value("Der Testfall"))
                 .andExpect(jsonPath("$.difficulty").value(2))
-                .andExpect(jsonPath("$.briefing").value("Im Testlabor ist ein Schluessel verschwunden."));
+                .andExpect(jsonPath("$.briefing").value("Im Testlabor ist ein Schluessel verschwunden."))
+                // Ermittlungsziel (SCRUM-43)
+                .andExpect(jsonPath("$.goal").value("Finde heraus, wer den Schluessel hat."));
     }
 
     // ------------------------------------------------- Missionen (SCRUM-58)

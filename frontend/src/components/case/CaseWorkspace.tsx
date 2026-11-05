@@ -3,6 +3,7 @@ import { ApiError, api, type CaseDetail, type MissionOutcome, type QueryResult }
 import { useAuth } from '../../auth';
 import ResultTable from '../ResultTable';
 import SqlEditor from '../SqlEditor';
+import InvestigationPanel from './InvestigationPanel';
 import MissionBanner from './MissionBanner';
 import MissionFeedback from './MissionFeedback';
 import SchemaView from './SchemaView';
@@ -76,7 +77,7 @@ export default function CaseWorkspace({ detail, onShowBriefing, onProgress }: Pr
         </button>
       </div>
 
-      <div className="workspace">
+      <div className="workspace has-side">
         <div className="workspace-left">
           <TableExplorer caseId={detail.id} selected={table} onSelect={setTable} />
           {table && <SchemaView caseId={detail.id} table={table} onSelect={setTable} />}
@@ -109,6 +110,10 @@ export default function CaseWorkspace({ detail, onShowBriefing, onProgress }: Pr
 
           {result && !error && <ResultTable result={result} />}
         </section>
+
+        <aside className="workspace-side">
+          <InvestigationPanel goal={detail.goal} missions={detail.missions} />
+        </aside>
       </div>
     </div>
   );

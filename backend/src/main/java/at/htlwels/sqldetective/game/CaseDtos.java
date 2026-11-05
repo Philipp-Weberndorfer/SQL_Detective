@@ -45,6 +45,7 @@ public final class CaseDtos {
             String title,
             int difficulty,
             String briefing,            // Ausgangslage (F12)
+            String goal,                // Ermittlungsziel (F13)
             CaseStatus status,
             String currentMissionId,
             List<String> solvedMissionIds,

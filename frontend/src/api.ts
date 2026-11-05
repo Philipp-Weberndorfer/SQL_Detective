@@ -45,6 +45,7 @@ export interface CaseDetail {
   title: string;
   difficulty: number;
   briefing: string;
+  goal: string;
   status: CaseStatus;
   currentMissionId: string | null;
   solvedMissionIds: string[];
