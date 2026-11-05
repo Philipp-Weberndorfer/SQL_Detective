@@ -108,3 +108,9 @@ Für jeden Fall läuft automatisiert (F128, F129):
 - Liefert die hinterlegte Referenzabfrage genau `expectedResult`?
 - Gibt es je Mission mindestens zwei unterschiedliche korrekte Lösungswege im Test (`solution` plus
   `testQueries.correct`), und wird die falsche Abfrage als falsch erkannt?
+- Lässt sich der Fall wie von einem Spieler durchspielen – alle Missionen, alle geforderten Beweise, die
+  richtige Schlussfolgerung?
+
+Das erledigt `CaseSolvabilityTest` in `mvn test` für jeden Ordner unter `cases/` – ohne dass für einen neuen
+Fall Testcode geändert werden muss. Ein kaputter Fall lässt den Build scheitern, die Meldung nennt Fall und
+Mission (z. B. `case-002 / m3: Referenzlösung liefert …`).

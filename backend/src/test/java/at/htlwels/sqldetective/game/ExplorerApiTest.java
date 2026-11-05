@@ -1,5 +1,6 @@
 package at.htlwels.sqldetective.game;
 
+import at.htlwels.sqldetective.ApiTestBase;
 import at.htlwels.sqldetective.TestDatabases;
 import at.htlwels.sqldetective.TestUsers;
 import org.junit.jupiter.api.DisplayName;
@@ -21,17 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Tests zum Database Explorer: Tabellenuebersicht (SCRUM-45, F20).
  */
-@SpringBootTest
-@AutoConfigureMockMvc
-class ExplorerApiTest {
-
-    @DynamicPropertySource
-    static void databases(DynamicPropertyRegistry registry) {
-        TestDatabases.register(registry);
-    }
-
-    @Autowired
-    MockMvc mvc;
+class ExplorerApiTest extends ApiTestBase {
 
     @Test
     @DisplayName("Der Explorer listet genau die Tabellen des Falls mit Zeilenanzahl")

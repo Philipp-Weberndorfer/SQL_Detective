@@ -1,5 +1,6 @@
 package at.htlwels.sqldetective.game;
 
+import at.htlwels.sqldetective.ApiTestBase;
 import at.htlwels.sqldetective.TestDatabases;
 import at.htlwels.sqldetective.TestUsers;
 import org.junit.jupiter.api.DisplayName;
@@ -28,17 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Tests zu SCRUM-33: Spielfortschritt dauerhaft speichern (F05, F135).
  */
-@SpringBootTest
-@AutoConfigureMockMvc
-class ProgressApiTest {
-
-    @DynamicPropertySource
-    static void databases(DynamicPropertyRegistry registry) {
-        TestDatabases.register(registry);
-    }
-
-    @Autowired
-    MockMvc mvc;
+class ProgressApiTest extends ApiTestBase {
 
     @Autowired
     ProgressRepository progress;

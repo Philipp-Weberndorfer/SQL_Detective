@@ -1,5 +1,6 @@
 package at.htlwels.sqldetective.query;
 
+import at.htlwels.sqldetective.ApiTestBase;
 import at.htlwels.sqldetective.TestDatabases;
 import at.htlwels.sqldetective.TestUsers;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,17 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * API-Tests zu SCRUM-27, SCRUM-28 und SCRUM-30 gegen echte Datenbanken
  * (F24, F26, F27, F28, F31, F34, F35, F111, F113, F114).
  */
-@SpringBootTest
-@AutoConfigureMockMvc
-class QueryApiTest {
-
-    @DynamicPropertySource
-    static void databases(DynamicPropertyRegistry registry) {
-        TestDatabases.register(registry);
-    }
-
-    @Autowired
-    MockMvc mvc;
+class QueryApiTest extends ApiTestBase {
 
     @Autowired
     @Qualifier("gameDataSource")

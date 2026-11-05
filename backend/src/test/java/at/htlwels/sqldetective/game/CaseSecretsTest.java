@@ -1,5 +1,6 @@
 package at.htlwels.sqldetective.game;
 
+import at.htlwels.sqldetective.ApiTestBase;
 import at.htlwels.sqldetective.TestDatabases;
 import at.htlwels.sqldetective.TestUsers;
 import at.htlwels.sqldetective.cases.CaseModel.LoadedCase;
@@ -38,20 +39,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
  *
  * Neue Fall-Endpunkte werden in {@link #endpoints(LoadedCase)} ergaenzt.
  */
-@SpringBootTest
-@AutoConfigureMockMvc
-class CaseSecretsTest {
+class CaseSecretsTest extends ApiTestBase {
 
     private static final Set<String> SECRET_FIELDS =
             Set.of("expectedResult", "solution", "testQueries", "correct", "requiredEvidence");
-
-    @DynamicPropertySource
-    static void databases(DynamicPropertyRegistry registry) {
-        TestDatabases.register(registry);
-    }
-
-    @Autowired
-    MockMvc mvc;
 
     @Autowired
     CaseRegistry cases;

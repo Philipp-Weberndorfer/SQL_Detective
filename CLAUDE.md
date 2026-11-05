@@ -41,6 +41,10 @@ cd frontend && npm test               # Frontend-Tests (Vitest)
 Integrationstests nutzen `TestDatabases` (Testcontainers) und laden genau die Skripte aus `db/` –
 Sicherheitstests also immer gegen echtes PostgreSQL, nie gegen H2 oder Mocks. Die Fälle kommen wie im
 Betrieb über den `CaseLoader` dazu, plus der kleine Testfall `case-900` aus `src/test/resources/test-cases/`.
+API-Tests erben von `ApiTestBase` und teilen sich dadurch einen Spring-Kontext – eigene
+`@SpringBootTest`-Klassen mit eigenem `@DynamicPropertySource` öffnen jeweils neue Verbindungspools und
+sprengen bei vielen Testklassen `max_connections`. `CaseSolvabilityTest` prüft jeden Fall automatisch
+(Referenzlösungen, Testabfragen, Durchspielen bis zum Abschluss).
 
 Fälle lädt `cases/CaseRegistry` beim Start: jeder Fall in ein eigenes Schema der Spieldatenbank
 (`case-001` → `case_001`), jedes Mal neu (AE-10). Spielerabfragen laufen mit `SET LOCAL search_path` auf

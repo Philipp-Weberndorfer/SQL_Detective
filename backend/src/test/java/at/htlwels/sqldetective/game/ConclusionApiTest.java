@@ -1,5 +1,6 @@
 package at.htlwels.sqldetective.game;
 
+import at.htlwels.sqldetective.ApiTestBase;
 import at.htlwels.sqldetective.TestDatabases;
 import at.htlwels.sqldetective.TestUsers;
 import org.junit.jupiter.api.DisplayName;
@@ -27,17 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Tests zu SCRUM-60: Fall abschliessen mit Beweisfuehrung, am Testfall case-900
  * (richtig ist Clara, gefordert ist Beweis e2, hoechstens ein Beweis).
  */
-@SpringBootTest
-@AutoConfigureMockMvc
-class ConclusionApiTest {
-
-    @DynamicPropertySource
-    static void databases(DynamicPropertyRegistry registry) {
-        TestDatabases.register(registry);
-    }
-
-    @Autowired
-    MockMvc mvc;
+class ConclusionApiTest extends ApiTestBase {
 
     private void query(MockHttpSession session, String sql) throws Exception {
         mvc.perform(post("/api/queries").with(csrf()).session(session).contentType(MediaType.APPLICATION_JSON)

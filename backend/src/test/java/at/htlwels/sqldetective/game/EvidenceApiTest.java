@@ -1,5 +1,6 @@
 package at.htlwels.sqldetective.game;
 
+import at.htlwels.sqldetective.ApiTestBase;
 import at.htlwels.sqldetective.TestDatabases;
 import at.htlwels.sqldetective.TestUsers;
 import org.junit.jupiter.api.DisplayName;
@@ -27,17 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Tests zu SCRUM-55: Hinweis als Beweis sichern (F39, F40), am Testfall case-900.
  */
-@SpringBootTest
-@AutoConfigureMockMvc
-class EvidenceApiTest {
-
-    @DynamicPropertySource
-    static void databases(DynamicPropertyRegistry registry) {
-        TestDatabases.register(registry);
-    }
-
-    @Autowired
-    MockMvc mvc;
+class EvidenceApiTest extends ApiTestBase {
 
     @Autowired
     @Qualifier("appJdbcTemplate")

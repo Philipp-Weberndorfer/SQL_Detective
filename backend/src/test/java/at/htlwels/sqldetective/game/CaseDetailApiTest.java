@@ -1,5 +1,6 @@
 package at.htlwels.sqldetective.game;
 
+import at.htlwels.sqldetective.ApiTestBase;
 import at.htlwels.sqldetective.TestDatabases;
 import at.htlwels.sqldetective.TestUsers;
 import org.junit.jupiter.api.DisplayName;
@@ -22,17 +23,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Tests zur Fallansicht: Briefing (SCRUM-42).
  */
-@SpringBootTest
-@AutoConfigureMockMvc
-class CaseDetailApiTest {
-
-    @DynamicPropertySource
-    static void databases(DynamicPropertyRegistry registry) {
-        TestDatabases.register(registry);
-    }
-
-    @Autowired
-    MockMvc mvc;
+class CaseDetailApiTest extends ApiTestBase {
 
     @Test
     @DisplayName("Das Briefing kommt mit Nummer, Titel, Schwierigkeit und Ausgangslage aus case.json")
