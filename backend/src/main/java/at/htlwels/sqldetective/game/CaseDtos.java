@@ -94,6 +94,6 @@ public final class CaseDtos {
     }
 
     /** Eine Mission mit Nummer, Frage und Zustand fuer den Spieler (F14, F43) - ohne Loesung. */
-    public record MissionView(String id, int number, String title, ProgressService.MissionState state) {
+    public record MissionView(String id, int number, String title, String output, ProgressService.MissionState state) {
     }
 }

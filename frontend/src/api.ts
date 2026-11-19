@@ -92,6 +92,8 @@ export interface MissionView {
   id: string;
   number: number;
   title: string;
+  /** was ausgegeben werden soll, z. B. „Vor- und Nachname“ */
+  output: string | null;
   state: 'SOLVED' | 'CURRENT' | 'LOCKED';
 }
 

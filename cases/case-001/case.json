@@ -13,6 +13,7 @@
     {
       "id": "m1",
       "title": "Wem ist Notebook NB-042 zugeordnet?",
+      "output": "Vor- und Nachname der Person (first_name, last_name)",
       "learningGoals": ["SELECT", "WHERE"],
       "expectedResult": {
         "columns": ["first_name", "last_name"],
@@ -40,6 +41,7 @@
     {
       "id": "m2",
       "title": "Wer hat sich zuletzt auf NB-042 angemeldet?",
+      "output": "Vor- und Nachname der Person (first_name, last_name) – nur eine Zeile",
       "learningGoals": ["ORDER BY", "LIMIT"],
       "expectedResult": {
         "columns": ["first_name", "last_name"],
@@ -67,6 +69,7 @@
     {
       "id": "m3",
       "title": "Wer war am Freitag nach 16:30 Uhr noch im Gebäude?",
+      "output": "Vor- und Nachname (first_name, last_name), jede Person nur einmal – nur Freitag, 2. Oktober, nach 16:30 Uhr",
       "learningGoals": ["JOIN", "WHERE", "DISTINCT"],
       "expectedResult": {
         "columns": ["first_name", "last_name"],
@@ -101,6 +104,7 @@
     {
       "id": "m4",
       "title": "Wer davon hat nach 16:30 Uhr das Labor 3 betreten?",
+      "output": "Vor- und Nachname (first_name, last_name), jede Person nur einmal – nur Freitag, 2. Oktober, nach 16:30 Uhr",
       "learningGoals": ["JOIN", "mehrere Bedingungen"],
       "expectedResult": {
         "columns": ["first_name", "last_name"],
@@ -132,6 +136,7 @@
     {
       "id": "m5",
       "title": "Welche Geräte waren am Freitag nach 16:30 Uhr im WLAN von Labor 3 eingebucht – und wem gehören sie?",
+      "output": "Inventarnummer und Name des Besitzers (inventory_no, first_name, last_name), jedes Gerät nur einmal – nur Freitag, 2. Oktober, nach 16:30 Uhr",
       "learningGoals": ["mehrere JOINs"],
       "expectedResult": {
         "columns": ["inventory_no", "first_name", "last_name"],

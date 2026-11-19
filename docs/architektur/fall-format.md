@@ -35,6 +35,7 @@ Der Ordnername ist die Fall-ID (`case-` und drei Ziffern). In `schema.sql` und `
     {
       "id": "m1",
       "title": "Wem war Notebook NB-042 zugeordnet?",
+      "output": "Vor- und Nachname der Person (first_name, last_name)",  // optional, siehe unten
       "learningGoals": ["SELECT", "WHERE"],
 
       "expectedResult": {             // NIEMALS an Spieler oder KI ausliefern
@@ -74,6 +75,11 @@ Der Ordnername ist die Fall-ID (`case-` und drei Ziffern). In `schema.sql` und `
 ```
 
 Felder, die mit `_` beginnen (z. B. `_hinweis`), sind Kommentare und werden ignoriert.
+
+**`output` sagt, wie die Antwort aussehen soll** – welche Spalten (mit ihren Namen) und Einschränkungen wie
+„jede Person nur einmal“. Das Spiel zeigt es unter der Frage als „Gesucht: …“. Ohne diese Angabe kennt der
+Spieler die Antwort womöglich schon, die Prüfung erkennt sie aber nicht, weil sie nach Spaltennamen
+zuordnet. Das Feld verrät die Form, nicht die Werte oder die Abfrage.
 
 ## Laden
 

@@ -46,6 +46,7 @@ public final class CaseModel {
     public record Mission(
             String id,
             String title,
+            String output,              // was ausgegeben werden soll, z. B. "Vor- und Nachname" (optional)
             List<String> learningGoals,
             ExpectedResult expectedResult,
             List<Hint> hints,

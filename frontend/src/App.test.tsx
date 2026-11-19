@@ -43,8 +43,8 @@ const detail: CaseDetail = {
   currentMissionId: 'm1',
   solvedMissionIds: [],
   missions: [
-    { id: 'm1', number: 1, title: 'Wem war Notebook NB-042 zugeordnet?', state: 'CURRENT' },
-    { id: 'm2', number: 2, title: 'Wer hat sich zuletzt auf NB-042 angemeldet?', state: 'LOCKED' },
+    { id: 'm1', number: 1, title: 'Wem war Notebook NB-042 zugeordnet?', output: 'Vor- und Nachname der Person (first_name, last_name)', state: 'CURRENT' },
+    { id: 'm2', number: 2, title: 'Wer hat sich zuletzt auf NB-042 angemeldet?', output: null, state: 'LOCKED' },
   ],
 };
 
@@ -323,6 +323,7 @@ describe('Aktuelle Mission', () => {
     const banner = await screen.findByRole('region', { name: 'Aktuelle Mission' });
     expect(banner).toHaveTextContent('Mission 1 von 2');
     expect(banner).toHaveTextContent('Wem war Notebook NB-042 zugeordnet?');
+    expect(banner).toHaveTextContent('Gesucht: Vor- und Nachname der Person (first_name, last_name)');
 
     await userEvent.click(screen.getByRole('button', { name: 'Ausführen' }));
 

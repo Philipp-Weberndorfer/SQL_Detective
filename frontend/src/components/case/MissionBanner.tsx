@@ -27,6 +27,7 @@ export default function MissionBanner({ missions, whenAllSolved }: Props) {
         Mission {current.number} von {missions.length}
       </span>
       <p className="mission-title">{current.title}</p>
+      {current.output && <p className="mission-output">Gesucht: {current.output}</p>}
     </section>
   );
 }

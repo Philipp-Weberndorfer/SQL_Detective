@@ -112,7 +112,7 @@ public class CaseController {
     private static List<MissionView> missions(LoadedCase c, CaseState state) {
         List<Mission> all = c.definition().missions();
         return java.util.stream.IntStream.range(0, all.size())
-                .mapToObj(i -> new MissionView(all.get(i).id(), i + 1, all.get(i).title(),
+                .mapToObj(i -> new MissionView(all.get(i).id(), i + 1, all.get(i).title(), all.get(i).output(),
                         state.missionState(all.get(i).id())))
                 .toList();
     }
