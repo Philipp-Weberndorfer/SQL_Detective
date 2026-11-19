@@ -14,7 +14,7 @@ export default function RegisterPage() {
   const [busy, setBusy] = useState(false);
 
   if (user) {
-    return <Navigate to="/editor" replace />;
+    return <Navigate to="/faelle" replace />;
   }
 
   async function submit(e: FormEvent) {
@@ -27,7 +27,7 @@ export default function RegisterPage() {
     setError(null);
     try {
       await register(username.trim(), email.trim(), password);
-      navigate('/editor', { replace: true });
+      navigate('/faelle', { replace: true });
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Registrierung fehlgeschlagen.');
     } finally {

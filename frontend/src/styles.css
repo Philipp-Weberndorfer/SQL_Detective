@@ -70,8 +70,24 @@ a {
   gap: 0.75rem;
 }
 
+.topbar-nav {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.topbar-nav a:not(.brand) {
+  color: var(--muted);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.topbar-nav a.active {
+  color: var(--accent);
+}
+
 .content {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 1.5rem;
 }
@@ -148,6 +164,374 @@ input {
   margin-top: 1.5rem;
 }
 
+/* ------------------------------------------------------------- Fälle */
+
+.case-list {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.case-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  height: 100%;
+  padding: 1rem 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.case-card:hover,
+.case-card:focus-visible {
+  border-color: var(--accent);
+}
+
+.case-card.locked {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.case-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.case-number {
+  font-family: ui-monospace, Consolas, monospace;
+  color: var(--muted);
+}
+
+.status-badge {
+  padding: 0.1rem 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.status-in_progress {
+  border-color: var(--notice-border);
+  background: var(--notice-bg);
+}
+
+.status-solved {
+  border-color: #3f8a4f;
+  background: #e8f4ea;
+  color: #245b31;
+}
+
+.case-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.difficulty {
+  color: var(--accent);
+  letter-spacing: 0.1em;
+}
+
+.difficulty-rest {
+  color: var(--border);
+}
+
+.briefing {
+  max-width: 720px;
+  margin: 2rem auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.briefing .case-number {
+  margin: 0;
+  letter-spacing: 0.1em;
+}
+
+.briefing h1 {
+  margin: 0;
+  font-size: 2rem;
+}
+
+.briefing-text {
+  white-space: pre-line;
+  font-size: 1.1rem;
+  margin: 0.5rem 0 1rem;
+}
+
+.case-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.case-header h1 {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+/* Arbeitsbereich: Explorer | Editor und Ergebnis | Seitenleiste.
+   Auf 1366 px Breite ohne horizontales Scrollen der Seite. */
+.workspace {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.workspace.has-side {
+  grid-template-columns: 220px minmax(0, 1fr) 300px;
+}
+
+@media (max-width: 1000px) {
+  .workspace,
+  .workspace.has-side {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.workspace-main {
+  min-width: 0;
+}
+
+.workspace-main .sql-editor {
+  margin-top: 0;
+}
+
+.panel,
+.explorer {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.75rem;
+}
+
+.panel h2,
+.explorer h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+}
+
+.explorer ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* Name oben, Zeilenanzahl darunter - lange Namen wie witness_statements
+   passen so ohne Umbruch mitten im Wort in die schmale Spalte */
+.explorer-table {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+  width: 100%;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+  font-weight: 400;
+  text-align: left;
+}
+
+.explorer-table:hover,
+.explorer-table.selected {
+  border-color: var(--border);
+  background: #efece6;
+}
+
+.explorer-name {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+.explorer-count {
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.workspace-side {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.goal {
+  margin: 0 0 0.25rem;
+  font-weight: 600;
+}
+
+.progress-count {
+  margin: 0 0 0.5rem;
+  font-size: 0.85rem;
+}
+
+.mission-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.9rem;
+}
+
+.mission-item {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.35rem 0.4rem;
+  border-radius: 6px;
+}
+
+.mission-item.current {
+  background: #f6e9e9;
+  font-weight: 600;
+}
+
+.mission-item.locked {
+  color: var(--muted);
+}
+
+.mission-item.solved .mission-state {
+  color: #3f8a4f;
+}
+
+.mission-state {
+  flex: 0 0 1.2rem;
+  text-align: center;
+}
+
+.evidence-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.9rem;
+}
+
+.evidence-item {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid #efece6;
+}
+
+.evidence-item.open {
+  color: var(--muted);
+}
+
+.evidence-item .evidence-text {
+  margin: 0.15rem 0 0;
+}
+
+.evidence-state {
+  flex: 0 0 1.2rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.evidence-item.secured .evidence-state {
+  color: #3f8a4f;
+}
+
+.evidence-item.found .evidence-state {
+  color: var(--notice-border);
+}
+
+.evidence-body {
+  min-width: 0;
+}
+
+.evidence-select {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.evidence-select input {
+  width: auto;
+  margin: 0;
+}
+
+button.small {
+  margin-top: 0.3rem;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.85rem;
+}
+
+.workspace-left {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.schema-columns {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.88rem;
+}
+
+.schema-columns li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 0.4rem;
+  padding: 0.3rem 0;
+  border-bottom: 1px solid #efece6;
+}
+
+.schema-name {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.3rem;
+  overflow-wrap: anywhere;
+}
+
+.schema-type {
+  font-size: 0.8rem;
+}
+
+.key-badge {
+  padding: 0 0.3rem;
+  border-radius: 4px;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.key-badge.muted-badge {
+  background: var(--border);
+  color: var(--text);
+}
+
+.schema-fk {
+  flex-basis: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--accent);
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.8rem;
+  font-weight: 400;
+  text-align: left;
+  text-decoration: underline;
+}
+
 /* ------------------------------------------------------------- Editor */
 
 .sql-editor {
@@ -203,6 +587,107 @@ input {
   white-space: pre-wrap;
   word-break: break-word;
   font-family: ui-monospace, Consolas, monospace;
+}
+
+.mission-banner {
+  margin: 0 0 0.75rem;
+  padding: 0.75rem 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 5px solid var(--accent);
+  border-radius: 8px;
+}
+
+.mission-banner.done {
+  border-left-color: #3f8a4f;
+}
+
+.mission-count {
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.mission-title {
+  margin: 0.15rem 0 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.mission-output {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.conclusion {
+  margin: 0 0 0.75rem;
+}
+
+.conclusion h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.2rem;
+}
+
+.conclusion fieldset {
+  margin: 0 0 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.conclusion legend {
+  font-weight: 700;
+}
+
+.conclusion-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.2rem 0;
+}
+
+.conclusion-option input {
+  width: auto;
+  margin: 0;
+}
+
+.success-box {
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem;
+  background: #e8f4ea;
+  border: 1px solid #3f8a4f;
+  border-left-width: 5px;
+  border-radius: 6px;
+}
+
+.evidence-offer {
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--notice-bg);
+  border: 1px dashed var(--notice-border);
+  border-radius: 8px;
+}
+
+.evidence-offer-head {
+  margin: 0;
+  font-weight: 700;
+}
+
+.evidence-text {
+  margin: 0.25rem 0 0.5rem;
+}
+
+.evidence-secured {
+  margin: 0;
+  color: #245b31;
+  font-weight: 600;
+}
+
+.mission-open {
+  margin: 0 0 0.75rem;
 }
 
 .notice {

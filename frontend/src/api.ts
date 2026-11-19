@@ -8,12 +8,112 @@ export interface User {
   role: string;
 }
 
+/** Ein Beweisstück; text ist null, solange es nicht gefunden wurde. */
+export interface EvidenceView {
+  id: string;
+  title: string;
+  text: string | null;
+  state: 'SECURED' | 'FOUND' | 'OPEN';
+}
+
+/** Das Evidence Board: alle Beweise des Falls und wie viele gesichert sind. */
+export interface EvidenceBoardData {
+  items: EvidenceView[];
+  secured: number;
+  total: number;
+}
+
+/** Das Finale: Frage und Antworten – ohne richtige Antwort. */
+export interface ConclusionView {
+  question: string;
+  options: string[];
+  maxEvidence: number;
+  solved: boolean;
+}
+
+/** Ergebnis der Beweisführung. */
+export interface ConclusionResult {
+  solved: boolean;
+  message: string;
+  missionsSolved: number;
+  missionsTotal: number;
+  evidenceSecured: number;
+  evidenceTotal: number;
+}
+
+/** Ergebnis der automatischen Missionsprüfung – verrät bei Fehlversuchen nichts über die Lösung. */
+export interface MissionOutcome {
+  missionId: string;
+  solved: boolean;
+  nextMissionId: string | null;
+  allSolved: boolean;
+  /** das Beweisstück, das die gelöste Mission freischaltet */
+  evidence?: EvidenceView | null;
+}
+
 export interface QueryResult {
   columns: string[];
   rows: unknown[][];
   rowCount: number;
   truncated: boolean;
   durationMs: number;
+  /** null, wenn es nichts zu prüfen gab */
+  mission?: MissionOutcome | null;
+}
+
+export type CaseStatus = 'LOCKED' | 'AVAILABLE' | 'IN_PROGRESS' | 'SOLVED';
+
+/** Eine Zeile der Fallübersicht. */
+export interface CaseSummary {
+  id: string;
+  number: string;
+  title: string;
+  difficulty: number;
+  focus: string[];
+  status: CaseStatus;
+}
+
+/** Ein Fall mit dem Fortschritt des angemeldeten Spielers. */
+export interface CaseDetail {
+  id: string;
+  number: string;
+  title: string;
+  difficulty: number;
+  briefing: string;
+  goal: string;
+  status: CaseStatus;
+  currentMissionId: string | null;
+  solvedMissionIds: string[];
+  missions: MissionView[];
+}
+
+/** Eine Mission mit Nummer, Frage und Zustand – ohne Lösung. */
+export interface MissionView {
+  id: string;
+  number: number;
+  title: string;
+  /** was ausgegeben werden soll, z. B. „Vor- und Nachname“ */
+  output: string | null;
+  state: 'SOLVED' | 'CURRENT' | 'LOCKED';
+}
+
+/** Eine Tabelle des Falls im Database Explorer. */
+export interface TableSummary {
+  name: string;
+  rowCount: number;
+}
+
+/** Aufbau einer Tabelle mit Schlüsseln. */
+export interface TableDetail {
+  name: string;
+  rowCount: number;
+  columns: {
+    name: string;
+    type: string;
+    primaryKey: boolean;
+    notNull: boolean;
+    references: { table: string; column: string } | null;
+  }[];
 }
 
 /** Fehler mit der lesbaren Meldung aus dem Backend (ApiError). */
@@ -77,5 +177,17 @@ export const api = {
   register: (username: string, email: string, password: string) =>
     request<User>('POST', '/api/auth/register', { username, email, password }),
   logout: () => request<void>('POST', '/api/auth/logout'),
-  runQuery: (sql: string) => request<QueryResult>('POST', '/api/queries', { sql }),
+  runQuery: (caseId: string, sql: string) => request<QueryResult>('POST', '/api/queries', { caseId, sql }),
+  cases: () => request<CaseSummary[]>('GET', '/api/cases'),
+  caseDetail: (caseId: string) => request<CaseDetail>('GET', `/api/cases/${caseId}`),
+  startCase: (caseId: string) => request<CaseDetail>('POST', `/api/cases/${caseId}/start`),
+  tables: (caseId: string) => request<TableSummary[]>('GET', `/api/cases/${caseId}/tables`),
+  table: (caseId: string, table: string) =>
+    request<TableDetail>('GET', `/api/cases/${caseId}/tables/${encodeURIComponent(table)}`),
+  evidence: (caseId: string) => request<EvidenceBoardData>('GET', `/api/cases/${caseId}/evidence`),
+  conclusion: (caseId: string) => request<ConclusionView>('GET', `/api/cases/${caseId}/conclusion`),
+  submitConclusion: (caseId: string, answer: string, evidenceIds: string[]) =>
+    request<ConclusionResult>('POST', `/api/cases/${caseId}/conclusion`, { answer, evidenceIds }),
+  secureEvidence: (caseId: string, evidenceId: string) =>
+    request<EvidenceView>('POST', `/api/cases/${caseId}/evidence/${encodeURIComponent(evidenceId)}`),
 };

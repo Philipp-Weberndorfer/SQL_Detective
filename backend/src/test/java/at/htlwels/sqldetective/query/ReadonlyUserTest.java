@@ -29,13 +29,22 @@ class ReadonlyUserTest {
     @Test
     @DisplayName("Der Nur-Lese-Benutzer kann das Beispielschema lesen")
     void canReadExampleSchema() throws SQLException {
-        try (Connection c = TestDatabases.connectGameAsReadonly(); Statement s = c.createStatement()) {
+        try (Connection c = readonlyInCase001(); Statement s = c.createStatement()) {
             for (String table : new String[]{"persons", "rooms", "access_logs"}) {
                 try (ResultSet rs = s.executeQuery("SELECT COUNT(*) FROM " + table)) {
                     rs.next();
                     assertTrue(rs.getInt(1) > 0, table + " sollte Beispieldaten enthalten");
                 }
             }
+        }
+    }
+
+    @Test
+    @DisplayName("Der Nur-Lese-Benutzer kann im Schema eines Falls nichts anlegen")
+    void cannotCreateInCaseSchema() throws SQLException {
+        try (Connection c = TestDatabases.connectGameAsReadonly(); Statement s = c.createStatement()) {
+            assertThrows(SQLException.class, () -> s.execute("CREATE TABLE case_001.x (id INT)"));
+            assertThrows(SQLException.class, () -> s.execute("CREATE VIEW case_001.v AS SELECT 1"));
         }
     }
 
@@ -57,7 +66,7 @@ class ReadonlyUserTest {
     })
     @DisplayName("Schreibende Befehle scheitern am Datenbankbenutzer, auch ohne Validierung")
     void writingStatementsFailAtDatabaseLevel(String sql) throws SQLException {
-        try (Connection c = TestDatabases.connectGameAsReadonly(); Statement s = c.createStatement()) {
+        try (Connection c = readonlyInCase001(); Statement s = c.createStatement()) {
             assertThrows(SQLException.class, () -> s.execute(sql));
         }
         assertPersonsUnchanged();
@@ -72,9 +81,18 @@ class ReadonlyUserTest {
 
     private static void assertPersonsUnchanged() throws SQLException {
         try (Connection c = TestDatabases.connectGameAsOwner(); Statement s = c.createStatement();
-             ResultSet rs = s.executeQuery("SELECT COUNT(*) FROM persons WHERE last_name = 'x'")) {
+             ResultSet rs = s.executeQuery("SELECT COUNT(*) FROM case_001.persons WHERE last_name = 'x'")) {
             rs.next();
             assertEquals(0, rs.getInt(1));
         }
+    }
+
+    /** Wie die Anwendung: Tabellennamen ohne Schema meinen Fall 001. */
+    private static Connection readonlyInCase001() throws SQLException {
+        Connection c = TestDatabases.connectGameAsReadonly();
+        try (Statement s = c.createStatement()) {
+            s.execute("SET search_path TO case_001");
+        }
+        return c;
     }
 }

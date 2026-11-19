@@ -36,6 +36,12 @@ sqldetective:
     url: ${GAME_DB_URL:jdbc:postgresql://localhost:5433/sqldetective_game}
     username: ${GAME_DB_READONLY_USER:game_readonly}
     password: ${GAME_DB_READONLY_PASSWORD:readonly_dev}
+    # Eigentuemer der Spieldatenbank - NUR fuer das Laden der Faelle beim Start (AE-10)
+    admin-username: ${GAME_DB_USER:sqld}
+    admin-password: ${GAME_DB_PASSWORD:dev}
+
+  # Ordner mit den Faellen (cases/). Leer = ../cases bzw. cases, je nach Startordner.
+  cases-dir: ${CASES_DIR:}
 
   # Grenzen fuer Spielerabfragen (F34, F35, F113, F114)
   query:

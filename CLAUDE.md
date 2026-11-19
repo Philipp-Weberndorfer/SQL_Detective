@@ -29,7 +29,8 @@ Java 21, Maven. Das Backend liegt unter `backend/`, Paketwurzel `at.htlwels.sqld
 
 ```bash
 docker compose up                     # alles starten (beide Datenbanken, Backend, Frontend auf :5173)
-docker compose down -v                # Datenbanken zurücksetzen (Init-Skripte laufen neu)
+docker compose restart backend        # Fälle aus cases/ neu laden (jeder Start lädt sie neu)
+docker compose down -v                # Datenbanken zurücksetzen (Init-Skripte laufen neu, Konten weg)
 
 mvn test                              # Backend-Tests inkl. Testcontainers - Docker muss laufen
 cd backend && mvn spring-boot:run     # Backend allein starten (Datenbanken müssen laufen)
@@ -38,7 +39,16 @@ cd frontend && npm test               # Frontend-Tests (Vitest)
 ```
 
 Integrationstests nutzen `TestDatabases` (Testcontainers) und laden genau die Skripte aus `db/` –
-Sicherheitstests also immer gegen echtes PostgreSQL, nie gegen H2 oder Mocks.
+Sicherheitstests also immer gegen echtes PostgreSQL, nie gegen H2 oder Mocks. Die Fälle kommen wie im
+Betrieb über den `CaseLoader` dazu, plus der kleine Testfall `case-900` aus `src/test/resources/test-cases/`.
+API-Tests erben von `ApiTestBase` und teilen sich dadurch einen Spring-Kontext – eigene
+`@SpringBootTest`-Klassen mit eigenem `@DynamicPropertySource` öffnen jeweils neue Verbindungspools und
+sprengen bei vielen Testklassen `max_connections`. `CaseSolvabilityTest` prüft jeden Fall automatisch
+(Referenzlösungen, Testabfragen, Durchspielen bis zum Abschluss).
+
+Fälle lädt `cases/CaseRegistry` beim Start: jeder Fall in ein eigenes Schema der Spieldatenbank
+(`case-001` → `case_001`), jedes Mal neu (AE-10). Spielerabfragen laufen mit `SET LOCAL search_path` auf
+das Schema des gewählten Falls.
 
 Beim lokalen Start aus der IDE greift das Backend auf `localhost:5432` und `localhost:5433` zu;
 im Container auf die Dienstnamen `app-db` und `game-db`. Beides steht in `application.yml`
@@ -51,7 +61,16 @@ Endpunkte:
 | GET | `/api/health` | Status und Erreichbarkeit beider Datenbanken (offen) |
 | POST | `/api/auth/register`, `/api/auth/login` | Konto anlegen, anmelden (offen) |
 | POST | `/api/auth/logout` · GET `/api/auth/me` | abmelden, aktueller Benutzer |
-| POST | `/api/queries` | Spielerabfrage ausführen, Body `{"sql": "SELECT ..."}` |
+| POST | `/api/queries` | Spielerabfrage ausführen, Body `{"caseId": "case-001", "sql": "SELECT ..."}` |
+| GET | `/api/cases` | Fallübersicht |
+| GET | `/api/cases/{id}` · POST `/api/cases/{id}/start` | Fall mit Fortschritt des Spielers, Fall beginnen |
+| GET | `/api/cases/{id}/tables[/{name}]` | Tabellen des Falls, Aufbau einer Tabelle (aus dem Speicher, nicht aus der DB) |
+| GET/POST | `/api/cases/{id}/evidence[/{eid}]` | Evidence Board, Beweis sichern |
+| GET/POST | `/api/cases/{id}/conclusion` | Finale ansehen, Schlussfolgerung vorlegen (Prüfung nur im Backend) |
+
+Spielfortschritt liegt in der Anwendungsdatenbank (`case_progress`, `mission_progress`), Zugriff über
+`game/ProgressRepository`. Öffentliche Antworten sind die Records in `game/CaseDtos` – dort stehen nie
+Lösungsfelder.
 
 Anmeldung über Sitzung + CSRF-Cookie (AE-08). Alles außer den offenen Endpunkten und
 `/swagger-ui.html` verlangt eine Anmeldung. Fehler laufen zentral über `api/ApiExceptionHandler`
@@ -78,6 +97,11 @@ Diese drei Punkte sind nicht verhandelbar – sie sind der Kern des Projekts:
 Bewertet wird das **Ergebnis** einer Abfrage, nicht ihr Wortlaut. Zwei verschieden formulierte Abfragen mit
 demselben Ergebnis sind beide richtig. Spaltenreihenfolge und Groß-/Kleinschreibung von Aliasnamen sind
 egal; die Zeilenreihenfolge zählt nur, wenn die Mission sie ausdrücklich verlangt.
+
+Umgesetzt in `game/ResultMatcher` (ohne Datenbank, Unit-Tests in `ResultMatcherTest`). Zusätzliche Spalten
+sind erlaubt, Zeilen werden als Multimenge verglichen, Zahlen und Zeitstempel vereinheitlicht. Jede Abfrage im
+Fall wird über `game/MissionService` automatisch gegen die offene Mission geprüft – ein Fehlversuch liefert nur
+„noch offen“, nie erwartete Werte.
 
 ## Konventionen
 

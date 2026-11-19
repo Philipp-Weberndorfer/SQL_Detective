@@ -67,8 +67,15 @@ services:
       GAME_DB_URL: jdbc:postgresql://game-db:5432/${GAME_DB_NAME}
       GAME_DB_READONLY_USER: ${GAME_DB_READONLY_USER}
       GAME_DB_READONLY_PASSWORD: ${GAME_DB_READONLY_PASSWORD}
+      # Eigentuemer nur fuer das Laden der Faelle beim Start (AE-10)
+      GAME_DB_USER: ${GAME_DB_USER}
+      GAME_DB_PASSWORD: ${GAME_DB_PASSWORD}
+      CASES_DIR: /app/cases
       QUERY_TIMEOUT_MS: ${QUERY_TIMEOUT_MS}
       QUERY_MAX_ROWS: ${QUERY_MAX_ROWS}
+    volumes:
+      # Faelle sind Daten: neuer Fall-Ordner + Neustart des Backends, kein neuer Build
+      - ./cases:/app/cases:ro
     ports:
       - "${BACKEND_PORT}:8080"
 

@@ -23,7 +23,7 @@ CREATE TABLE rooms (
     id          SERIAL PRIMARY KEY,
     name        VARCHAR(50) NOT NULL,
     floor       INTEGER     NOT NULL,
-    room_type   VARCHAR(30) NOT NULL        -- lab | classroom | office
+    room_type   VARCHAR(30) NOT NULL        -- lab | classroom | office | library | entrance
 );
 
 -- ------------------------------------------------------------------- Geraete

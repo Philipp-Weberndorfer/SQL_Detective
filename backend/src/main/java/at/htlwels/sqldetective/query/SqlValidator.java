@@ -43,6 +43,23 @@ public class SqlValidator {
 
     private static final Pattern WORD = Pattern.compile("[A-Za-z_][A-Za-z0-9_]*");
 
+    /** Schema-Praefix eines Falls, auch in Anfuehrungszeichen: case_002.persons, "case_002".persons */
+    private static final Pattern CASE_SCHEMA_PREFIX = Pattern.compile("(?i)\"?\\b(case_\\d+)\\b\"?\\s*\\.");
+
+    /**
+     * Wie {@link #validate(String)}, zusaetzlich nur Tabellen des eigenen Falls:
+     * Ein Schema-Praefix eines anderen Falls wird abgewiesen (AE-10).
+     */
+    public void validate(String sql, String allowedSchema) {
+        validate(sql);
+        Matcher m = CASE_SCHEMA_PREFIX.matcher(neutralise(sql, true));
+        while (m.find()) {
+            if (!m.group(1).equalsIgnoreCase(allowedSchema)) {
+                throw new InvalidQueryException("Du kannst nur die Tabellen des aktuellen Falls abfragen.");
+            }
+        }
+    }
+
     public void validate(String sql) {
         if (sql == null || sql.isBlank()) {
             throw new InvalidQueryException("Die Abfrage ist leer.");
@@ -101,6 +118,14 @@ public class SqlValidator {
      * werden auch Dollar-Quoting und E-Strings (Backslash-Escapes) erkannt.
      */
     String neutralise(String sql) {
+        return neutralise(sql, false);
+    }
+
+    /**
+     * @param keepQuotedIdentifiers Bezeichner in Anfuehrungszeichen stehen lassen,
+     *                              statt sie durch einen Platzhalter zu ersetzen
+     */
+    String neutralise(String sql, boolean keepQuotedIdentifiers) {
         StringBuilder out = new StringBuilder(sql.length());
         int i = 0;
         int n = sql.length();
@@ -175,12 +200,13 @@ public class SqlValidator {
             // Bezeichner in Anfuehrungszeichen bleiben erhalten, duerfen aber
             // keine Schluesselwoerter maskieren - deshalb als Platzhalter.
             if (c == '"') {
-                out.append("\"x\"");
+                int startQuote = i;
                 i++;
                 while (i < n && sql.charAt(i) != '"') {
                     i++;
                 }
                 i++;
+                out.append(keepQuotedIdentifiers ? sql.substring(startQuote, Math.min(i, n)) : "\"x\"");
                 continue;
             }
 

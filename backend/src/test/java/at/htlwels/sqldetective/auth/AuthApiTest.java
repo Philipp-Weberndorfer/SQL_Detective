@@ -1,5 +1,6 @@
 package at.htlwels.sqldetective.auth;
 
+import at.htlwels.sqldetective.ApiTestBase;
 import at.htlwels.sqldetective.TestDatabases;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,19 +32,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Tests zu SCRUM-26: Registrierung, Login, Logout (F01, F02).
  * Je Fehlerfall aus den Akzeptanzkriterien mindestens ein Test.
  */
-@SpringBootTest
-@AutoConfigureMockMvc
-class AuthApiTest {
+class AuthApiTest extends ApiTestBase {
 
     private static final String PASSWORD = "geheim123";
-
-    @DynamicPropertySource
-    static void databases(DynamicPropertyRegistry registry) {
-        TestDatabases.register(registry);
-    }
-
-    @Autowired
-    MockMvc mvc;
 
     @Autowired
     @Qualifier("appJdbcTemplate")
@@ -167,7 +158,8 @@ class AuthApiTest {
         login(name, PASSWORD, session).andExpect(status().isOk());
 
         mvc.perform(post("/api/queries").with(csrf()).session(session)
-                        .contentType(MediaType.APPLICATION_JSON).content("{\"sql\": \"SELECT 1 AS eins\"}"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"caseId\": \"case-001\", \"sql\": \"SELECT 1 AS eins\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.columns[0]").value("eins"));
     }

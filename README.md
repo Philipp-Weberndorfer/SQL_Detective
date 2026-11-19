@@ -43,8 +43,16 @@ Der erste Start dauert einige Minuten, weil Maven- und npm-Abhängigkeiten gelad
 **Frontend ohne Docker entwickeln.** Datenbanken und Backend per `docker compose up app-db game-db backend`
 starten, dann `cd frontend && npm install && npm run dev`. Vite leitet `/api` an `localhost:8080` weiter.
 
+**Fälle ändern.** Das Backend lädt beim Start alle Fälle aus `cases/` neu in die Spieldatenbank, jeden in ein
+eigenes Schema. Nach einer Änderung an einem Fall oder für einen neuen Fall-Ordner reicht:
+
+```bash
+docker compose restart backend
+```
+
 **Datenbank zurücksetzen.** Die Init-Skripte unter `db/` laufen nur, wenn das Volume leer ist. Nach einer
-Schemaänderung passiert beim normalen Neustart also nichts – dann so zurücksetzen:
+Änderung dort (z. B. an den Tabellen der Anwendungsdatenbank) so zurücksetzen – dabei gehen auch alle Konten
+und Spielstände verloren:
 
 ```bash
 docker compose down -v && docker compose up
@@ -57,7 +65,8 @@ mvn test                      # aus der Projektwurzel, testet alle Java-Module
 cd frontend && npm test       # Frontend-Tests (Vitest)
 ```
 
-Die Backend-Tests starten über Testcontainers eigene PostgreSQL-Container mit den Skripten aus `db/`.
+Die Backend-Tests starten über Testcontainers eigene PostgreSQL-Container mit den Skripten aus `db/` und laden
+alle Fälle aus `cases/` sowie den Testfall unter `backend/src/test/resources/test-cases/`.
 **Docker muss dafür laufen.** Ohne lokales JDK/Maven geht es auch komplett im Container:
 
 ```bash
@@ -76,10 +85,19 @@ Vollständig und ausprobierbar unter http://localhost:8080/swagger-ui.html.
 | POST | `/api/auth/login` | nein | Anmelden, erzeugt eine Sitzung (Cookie) |
 | POST | `/api/auth/logout` | ja | Sitzung beenden |
 | GET | `/api/auth/me` | ja | angemeldeter Benutzer |
-| POST | `/api/queries` | ja | Spielerabfrage ausführen, Body `{"sql": "SELECT ..."}` |
+| POST | `/api/queries` | ja | Spielerabfrage gegen die Tabellen eines Falls, Body `{"caseId": "case-001", "sql": "SELECT ..."}`; die Antwort enthält unter `mission` das Ergebnis der Missionsprüfung |
+| GET | `/api/cases` | ja | alle Fälle mit Nummer, Titel, Schwierigkeit und Schwerpunkt |
+| GET | `/api/cases/{id}` | ja | ein Fall mit dem Fortschritt des Spielers |
+| POST | `/api/cases/{id}/start` | ja | Fall beginnen (beim ersten Mal AVAILABLE → IN_PROGRESS) |
+| GET | `/api/cases/{id}/tables` | ja | Tabellen des Falls mit Zeilenanzahl (Database Explorer) |
+| GET | `/api/cases/{id}/tables/{name}` | ja | Spalten einer Tabelle mit Typ, Primär- und Fremdschlüsseln |
+| GET | `/api/cases/{id}/evidence` | ja | Evidence Board: gesicherte und gefundene Beweise mit Text, offene nur mit Titel |
+| POST | `/api/cases/{id}/evidence/{eid}` | ja | gefundenes Beweisstück sichern (409 `RULE`, wenn noch nicht gefunden) |
+| GET | `/api/cases/{id}/conclusion` | ja | Finale: Frage und Antworten (erst nach allen Missionen) |
+| POST | `/api/cases/{id}/conclusion` | ja | Schlussfolgerung vorlegen, Body `{"answer", "evidenceIds"}` |
 
 Fehler kommen immer als `{"message": "...", "type": "..."}` zurück. `type` ist z. B. `VALIDATION`
-(abgewiesen), `SQL` (PostgreSQL-Fehler), `TIMEOUT`, `UNAUTHORIZED` oder `CONFLICT`.
+(abgewiesen), `SQL` (PostgreSQL-Fehler), `TIMEOUT`, `UNAUTHORIZED`, `NOT_FOUND`, `RULE` (Spielregel) oder `CONFLICT`.
 
 Schreibende Aufrufe brauchen das CSRF-Token: Das Backend setzt das Cookie `XSRF-TOKEN`, der Wert muss im
 Header `X-XSRF-TOKEN` mitgeschickt werden. Das Frontend erledigt das automatisch.
@@ -89,8 +107,8 @@ Header `X-XSRF-TOKEN` mitgeschickt werden. Das Frontend erledigt das automatisch
 ```
 .
 ├─ docs/           Konzept, Sprintplan, Architekturentscheidungen, Sprint-Protokolle
-├─ db/             Init-Skripte: app/ = Anwendungsdatenbank, game/ = Spieldatenbank
-├─ cases/          Die Kriminalfälle als Daten (Briefing, Schema, Seed, Missionen, Hints)
+├─ db/             Init-Skripte: app/ = Anwendungsdatenbank, game/ = Nur-Lese-Benutzer der Spieldatenbank
+├─ cases/          Die Kriminalfälle als Daten (Briefing, Schema, Seed, Missionen, Hints), beim Start geladen
 ├─ backend/        REST API + Spiellogik + sichere SQL-Ausführung
 ├─ frontend/       Weboberfläche
 └─ mcp-server/     MCP-Server, über den der KI-Detektiv den Spielstand liest

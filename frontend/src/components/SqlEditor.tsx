@@ -1,6 +1,6 @@
 import { PostgreSQL, sql } from '@codemirror/lang-sql';
 import { Prec } from '@codemirror/state';
-import { keymap } from '@codemirror/view';
+import { EditorView, keymap } from '@codemirror/view';
 import CodeMirror from '@uiw/react-codemirror';
 import { useMemo, useRef } from 'react';
 
@@ -21,6 +21,8 @@ export default function SqlEditor({ value, onChange, onRun }: Props) {
   const extensions = useMemo(
     () => [
       sql({ dialect: PostgreSQL, upperCaseKeywords: true }),
+      // lange Abfragen umbrechen statt seitlich aus der schmalen Spalte zu laufen
+      EditorView.lineWrapping,
       Prec.highest(
         keymap.of([
           {

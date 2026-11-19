@@ -1,6 +1,10 @@
 package at.htlwels.sqldetective.query;
 
+import at.htlwels.sqldetective.ApiTestBase;
 import at.htlwels.sqldetective.TestDatabases;
+import at.htlwels.sqldetective.TestUsers;
+import org.junit.jupiter.api.BeforeEach;
+import org.springframework.mock.web.MockHttpSession;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -10,7 +14,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
@@ -34,25 +37,27 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * API-Tests zu SCRUM-27, SCRUM-28 und SCRUM-30 gegen echte Datenbanken
  * (F24, F26, F27, F28, F31, F34, F35, F111, F113, F114).
  */
-@SpringBootTest
-@AutoConfigureMockMvc
-class QueryApiTest {
-
-    @DynamicPropertySource
-    static void databases(DynamicPropertyRegistry registry) {
-        TestDatabases.register(registry);
-    }
-
-    @Autowired
-    MockMvc mvc;
+class QueryApiTest extends ApiTestBase {
 
     @Autowired
     @Qualifier("gameDataSource")
     DataSource gameDataSource;
 
+    /** Echter, angemeldeter Spieler - die Abfrage speichert seinen Missionsfortschritt. */
+    private MockHttpSession session;
+
+    @BeforeEach
+    void login() throws Exception {
+        session = TestUsers.loggedIn(mvc);
+    }
+
     private ResultActions query(String sql) throws Exception {
-        String body = "{\"sql\": " + json(sql) + "}";
-        return mvc.perform(post("/api/queries").with(csrf())
+        return query("case-001", sql);
+    }
+
+    private ResultActions query(String caseId, String sql) throws Exception {
+        String body = "{\"caseId\": " + json(caseId) + ", \"sql\": " + json(sql) + "}";
+        return mvc.perform(post("/api/queries").with(csrf()).session(session)
                 .contentType(MediaType.APPLICATION_JSON).content(body));
     }
 
@@ -65,7 +70,8 @@ class QueryApiTest {
     @Test
     @DisplayName("Ohne Anmeldung gibt es 401")
     void requiresLogin() throws Exception {
-        query("SELECT 1")
+        mvc.perform(post("/api/queries").with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"caseId\": \"case-001\", \"sql\": \"SELECT 1\"}"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.type").value("UNAUTHORIZED"));
     }
@@ -73,7 +79,6 @@ class QueryApiTest {
     // ----------------------------------------------------------- Erfolgsfall
 
     @Test
-    @WithMockUser
     @DisplayName("Erfolgsfall liefert Spaltennamen und Zeilen")
     void returnsColumnsAndRows() throws Exception {
         query("SELECT first_name, last_name FROM persons WHERE card_id = 'C-1001'")
@@ -87,7 +92,6 @@ class QueryApiTest {
     }
 
     @Test
-    @WithMockUser
     @DisplayName("Ein leeres Ergebnis ist kein Fehler")
     void emptyResultIsNotAnError() throws Exception {
         query("SELECT * FROM persons WHERE last_name = 'gibt es nicht'")
@@ -98,7 +102,6 @@ class QueryApiTest {
     }
 
     @Test
-    @WithMockUser
     @DisplayName("Spielerabfragen laufen als game_readonly")
     void runsAsReadonlyUser() throws Exception {
         query("SELECT current_user")
@@ -109,7 +112,6 @@ class QueryApiTest {
     // ------------------------------------------------------------ Fehlerfall
 
     @Test
-    @WithMockUser
     @DisplayName("SQL-Fehler liefern die PostgreSQL-Meldung, keinen Stacktrace")
     void sqlErrorIsReadable() throws Exception {
         query("SELECT gibts_nicht FROM persons")
@@ -121,21 +123,23 @@ class QueryApiTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"{\"sql\": \"\"}", "{\"sql\": \"   \"}", "{}"})
-    @WithMockUser
+    @ValueSource(strings = {
+            "{\"caseId\": \"case-001\", \"sql\": \"\"}",
+            "{\"caseId\": \"case-001\", \"sql\": \"   \"}",
+            "{\"caseId\": \"case-001\"}"
+    })
     @DisplayName("Leere Abfrage ergibt 400 mit Meldung, nicht 500")
     void emptyQueryIsBadRequest(String body) throws Exception {
-        mvc.perform(post("/api/queries").with(csrf()).contentType(MediaType.APPLICATION_JSON).content(body))
+        mvc.perform(post("/api/queries").with(csrf()).session(session).contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.type").value("VALIDATION"))
                 .andExpect(jsonPath("$.message").value("Die Abfrage darf nicht leer sein."));
     }
 
     @Test
-    @WithMockUser
     @DisplayName("Kaputtes JSON ergibt 400, nicht 500")
     void malformedJsonIsBadRequest() throws Exception {
-        mvc.perform(post("/api/queries").with(csrf()).contentType(MediaType.APPLICATION_JSON).content("{sql:"))
+        mvc.perform(post("/api/queries").with(csrf()).session(session).contentType(MediaType.APPLICATION_JSON).content("{sql:"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.type").value("BAD_REQUEST"));
     }
@@ -150,7 +154,6 @@ class QueryApiTest {
             "SELECT $$ -- $$; DROP TABLE persons",
             "SELECT E'\\'' ; DROP TABLE persons; --'"
     })
-    @WithMockUser
     @DisplayName("Schreibende Befehle werden mit verstaendlicher Meldung abgewiesen")
     void writingStatementsAreRejected(String sql) throws Exception {
         query(sql)
@@ -160,7 +163,7 @@ class QueryApiTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"DROP TABLE persons", "DELETE FROM persons", "CREATE TEMP TABLE x (id INT)"})
+    @ValueSource(strings = {"DROP TABLE case_001.persons", "DELETE FROM case_001.persons", "CREATE TEMP TABLE x (id INT)"})
     @DisplayName("Auch an der Validierung vorbei scheitert ein Schreibbefehl ueber die Spielverbindung")
     void gameConnectionRejectsWritesWithoutValidator(String sql) throws SQLException {
         try (Connection c = gameDataSource.getConnection(); Statement s = c.createStatement()) {
@@ -170,7 +173,6 @@ class QueryApiTest {
     }
 
     @Test
-    @WithMockUser
     @DisplayName("Sitzungseinstellungen einer Abfrage wirken nicht auf die naechste")
     void sessionSettingsDoNotLeak() throws Exception {
         // ueber alle Verbindungen im Pool hinweg pruefen
@@ -184,10 +186,53 @@ class QueryApiTest {
         }
     }
 
+    // ------------------------------------------------------------- Faelle
+
+    @Test
+    @DisplayName("Ohne Fall ergibt die Abfrage 400 mit Meldung")
+    void caseIdIsRequired() throws Exception {
+        mvc.perform(post("/api/queries").with(csrf()).session(session).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"sql\": \"SELECT 1\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Es ist kein Fall ausgewaehlt."));
+    }
+
+    @Test
+    @DisplayName("Ein unbekannter Fall ergibt 404")
+    void unknownCaseIsNotFound() throws Exception {
+        query("case-404", "SELECT 1")
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.type").value("NOT_FOUND"));
+    }
+
+    @Test
+    @DisplayName("Tabellennamen ohne Schema meinen die Tabellen des gewaehlten Falls")
+    void queriesRunAgainstTheChosenCase() throws Exception {
+        query("case-900", "SELECT name FROM suspects WHERE city = 'Linz'")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.rows[0][0]").value("Bernd"));
+        query("case-900", "SELECT * FROM persons")
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.type").value("SQL"));
+        query("case-001", "SELECT COUNT(*) FROM case_001.persons").andExpect(status().isOk());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "SELECT * FROM case_900.suspects",
+            "SELECT * FROM \"case_900\".suspects",
+            "SELECT p.id FROM persons p JOIN CASE_900 . suspects s ON s.id = p.id"
+    })
+    @DisplayName("Tabellen anderer Faelle werden abgewiesen")
+    void otherCasesAreNotVisible(String sql) throws Exception {
+        query("case-001", sql)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.type").value("VALIDATION"));
+    }
+
     // ------------------------------------------------------------- Limits
 
     @Test
-    @WithMockUser
     @DisplayName("Lange Abfragen werden nach dem Zeitlimit abgebrochen")
     void longQueryTimesOut() throws Exception {
         query("SELECT pg_sleep(5)")
@@ -197,7 +242,6 @@ class QueryApiTest {
     }
 
     @Test
-    @WithMockUser
     @DisplayName("Ergebnisse werden auf 500 Zeilen begrenzt")
     void resultIsLimitedTo500Rows() throws Exception {
         query("SELECT g FROM generate_series(1, 600) AS g")
@@ -207,7 +251,6 @@ class QueryApiTest {
     }
 
     @Test
-    @WithMockUser
     @DisplayName("Genau 500 Zeilen gelten nicht als abgeschnitten")
     void exactly500RowsAreNotTruncated() throws Exception {
         query("SELECT g FROM generate_series(1, 500) AS g")
